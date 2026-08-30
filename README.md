@@ -1,3 +1,23 @@
+# ShopSense
+
+ShopSense is our TikTok TechJam 2026 Shopping Copilot project.
+
+Our goal is to build a shopping assistant that understands a user's conversation, creates a Product DNA profile, searches the product catalog, and returns the best Top 10 recommendations for the official evaluator.
+
+Team:
+- Shayna: Product DNA, conversation state, constraints, useful questions
+- Leon: catalog search, filtering, ranking, Top 10 recommendations
+- Rhea: integration, official agent contract, evaluator, README, final submission
+
+
+
+
+
+
+
+
+
+
 # Competition Data
 
 ## `public_set.jsonl`

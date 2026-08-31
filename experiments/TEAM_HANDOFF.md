@@ -1,26 +1,21 @@
 # Leon's integration handoff
 
-Status: Leon's feature-branch review candidate, prepared from team `main` at
-`261eb05a47342cf77ecdc7e918c6b67c8b7a6a3a`. This is not a submitted or merged
-solution. Shayna's and Rhea's actual custom implementations were not present in
-that inspected team revision. The reference conversation module is a test harness,
-not proof of team integration. Rhea decides whether and when to merge this PR.
-See `scoreboard.md` for measured results and their exact limitations.
-
-Update: Shayna's actual supplied V2 code is now published on
-`feature/shayna-profile` (PR #2, original handoff `a6c8f78`). The previous statement
-about absent teammate code describes the base revision only. See
-`../docs/RHEA_MORNING_HANDOFF.md` for the concrete category, no-preference, and API
-issues found against that handoff. Raw latest and historical evidence is now
-published under `evidence/`; original metadata/checksums are preserved. This update
-does not claim those integration issues have been fixed or the combined agent tested.
+Status: feature-branch integration candidate based on team `main` at
+`261eb05a47342cf77ecdc7e918c6b67c8b7a6a3a`, not a submitted or merged solution.
+The actual Shayna modules are now connected through `ShaynaConversationBrain` and
+`ShaynaProfileAdapter`; auto mode selects them when both modules are present.
+Shayna's branch holds the profile/question fixes, Leon's holds the adapter, search
+and Agent bridge. Rhea retains review, merge, integration and release authority.
+See `../docs/RHEA_MORNING_HANDOFF.md` and `scoreboard.md` for measured status.
+Historical reference-brain evidence stays labelled separately under `evidence/`.
 
 ## Search boundary
 
 ```python
 from starter.ranker import Ranker
+from starter.shayna_adapter import ShaynaProfileAdapter
 
-ranker = Ranker("data/catalog.jsonl", profile_adapter=team_adapter)  # optional adapter
+ranker = Ranker("data/catalog.jsonl", profile_adapter=ShaynaProfileAdapter())
 recommendations, statistics = ranker.rank_with_stats(active_profile)
 ```
 
@@ -35,9 +30,9 @@ Known aliases can instead be added through `DefaultProfileAdapter(field_aliases=
 constraint_aliases=...)`. New aliases must have the same semantics, not merely
 similar field names.
 
-## What Shayna and Leon should agree
+## Frozen Shayna-to-Leon boundary
 
-Priority P1, integration contract, not a defect claim about unseen teammate code:
+The actual immutable `src.profile.ShopperProfile` is a complete snapshot:
 
 - Whether state is a complete snapshot or a partial update. The default adapter
   treats nested active/current state as complete; missing fields do not inherit
@@ -53,34 +48,35 @@ Priority P1, integration contract, not a defect claim about unseen teammate code
 - Budget units and operators. Prefer explicit USD bounds or min/max; unsupported
   currencies and contradictory syntax remain unknown, with no inferred conversion.
 
-Validation: send representative real profile objects from Buying, Browsing,
-Override, and Boundary sessions, including an empty replacement state. Add
-golden adapter expectations and show that stale terms cannot affect retrieval.
-Existing synthetic coverage is in `tests/test_profile_regressions.py` and
-`tests/test_profile_adapter.py`.
+`ShaynaProfileAdapter` derives the category and query phrases only from current
+active constraints, without importing `src` or re-parsing message history. Tests
+cover the real dataclass, dictionary snapshots, category aliases, inactive intent,
+no-preference transitions and the generic adapter fallback. See
+`tests/test_shayna_adapter.py` and `tests/test_shayna_integration.py` as well as
+the existing generic adapter/profile regressions.
 
-## What Rhea and Leon should connect
-
-Priority P1, integration/test gap:
+## Implemented Agent sequence for Rhea's review
 
 1. Update the active profile through Shayna's module.
 2. Call `rank_with_stats()` once if the question policy needs candidate statistics.
-3. Use an agreed statistics conversion or policy adaptation before calling
-   Shayna's question policy. Her supplied V2 expects complete value-count maps,
-   not Leon's metrics objects or truncated `top_values`. Until that boundary is
-   tested, `decide_next_turn(profile, None)` is a fixed-priority fallback only.
+3. Call `decide_next_turn(profile, candidate_statistics=statistics)`. The additive
+   interface consumes coverage/expected-remaining utility directly; it never
+   mistakes the truncated `top_values` preview for a complete distribution.
 4. Validate/compose only the official response fields. Do not serialize the
    profile, statistics, route diagnostics, or demo evidence into the response.
+5. Commit the immutable profile and cache a defensive response copy only after
+   success. Repeated identical calls reuse the cached result; reset clears it.
 
-The bundled reference brain currently selects a question during its state update;
-the optional two-stage integration above is not automatically wired into `Agent`.
-Rhea owns that wiring and any model-usage accounting. A future model client must
-report actual usage; this non-LLM implementation requires no credentials.
+The bridge is implemented, not pseudocode. Failed ranking, policy or composition
+leaves the Shayna state unchanged. Partial or broken teammate imports fail loudly;
+they do not silently evaluate the reference system. A future model client must
+report actual usage; this standard-library implementation makes no model calls.
 
-Validation: one real multi-turn session end-to-end, then all four scenarios,
-repeat/reset/interleaved-session cases, valid unique ordered Top 10, and the full
-unmodified public evaluator with raw-response validation. Do not claim integration
-is complete just because fixture-based injection tests pass.
+Regression coverage includes real multi-turn flows, repeat/reset/interleaved
+sessions, failed-response retries and valid unique Top 10. Full runs additionally
+record the actual selected brain/adapter and hash both `starter` and `src`; require
+`--expected-brain starter.shayna_conversation.ShaynaConversationBrain` when
+evaluating the combined system. Check the scoreboard for results, not test counts alone.
 
 ## Question statistics limitations
 
@@ -127,31 +123,35 @@ evaluator with Python `-I` and a socket/DNS guard. It checks runtime import orig
 and preserves full session results. It never overwrites an existing directory,
 deletes snapshots, copies credentials, or relies on `.git`/cached results.
 
-This is a local source-package validation, not a claim that the uncommitted work
-exists on a remote branch or has passed a fresh-clone test of the final team commit.
+This is source-package validation, not a fresh-clone test or proof that Rhea's
+eventual merged release commit has been evaluated. The current combined evidence
+records both source commits and their conflict-free combined tree in addition to
+the exact executed file hashes.
 
-Latest completed run: `shopsense-validation/candidate-20260831-v4`, started
+Historical reference-only run: `shopsense-validation/candidate-20260831-v4`, started
 31 August 2026 at 22:07 SGT. All **98 tests** passed inside the copied package;
 all **200 evaluator sessions** completed with zero Agent/reset exceptions,
 **454/454 valid ten-product responses**, and zero socket/DNS attempts. The
 **196/200 hits** and TechnicalScore **0.888571** exactly reproduce V3 session
 outcomes. Response p95 was **802.844 ms**; whole-process peak memory **602.793 MiB**.
-Initialization was **31.356 seconds**, so the team's sub-30-second startup goal
-remains open. The material-scan fast path is semantics-preserving on all 50,000
+Initialization was **31.356 seconds**, so that historical run missed the team's
+sub-30-second startup goal. The material-scan fast path is semantics-preserving on all 50,000
 catalog products; no end-to-end startup speedup or score gain is claimed.
 
 The validated starter-source fingerprint is
 `f43694ddd2f409e6708c34d0c113dbbf1478de57c8d91cbf5808f58a8724291c`.
 See `scoreboard.md` for exact artifact paths, input hashes, scenario results, and
-isolation limits. Actual teammate wiring and final-commit validation remain pending.
+isolation limits. Actual teammate wiring is now implemented; the current combined
+measurements are a separate scoreboard entry. Rhea's final merged release still
+needs her review and verification.
 
 ## Rhea's submission evidence checklist
 
 Priority P1, submission reproducibility:
 
 - Follow the official final FAQ at upstream commit `9c9e7c9`, not stale team docs.
-- Freeze a runnable, reviewed Git commit before the submission deadline. The
-  current local working tree is not yet that submitted commit.
+- Freeze a runnable, reviewed Git commit before the submission deadline. Feature
+  branch source commits are not Rhea's final submitted/merged commit.
 - After final-session release, do not change the agent, prompts, indexes, models,
   or other solution components. Run the unmodified official evaluator.
 - Retain complete `results.json` including sessions, the submitted SHA, and
@@ -164,6 +164,6 @@ Priority P1, submission reproducibility:
 The original development audit changed no team source or remote state. Leon has
 now authorized publishing this candidate on `feature/leon-ranking` and opening a
 PR into `main`. The PR preserves protected evaluator, data, contract, scoring, and
-existing evaluator-test files. It proposes the replaceable Agent/reference-brain
-scaffold for Rhea's explicit review; actual teammate integration remains pending.
+existing evaluator-test files. It includes the actual teammate integration for
+Rhea's explicit review, with the reference brain retained as a labelled comparison.
 Do not push directly to `main`, merge this PR, or enable automatic merging.

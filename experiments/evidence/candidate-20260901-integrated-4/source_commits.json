@@ -1,0 +1,11 @@
+{
+  "classification": "final_combined_review_candidate",
+  "scope": "Isolated export of conflict-free committed branch trees, not a Git clone or merged release commit",
+  "leon_source_commit": "666f6d8b5005c2e9d719d2cd2c052babad0656be",
+  "shayna_source_commit": "db55586e2d6f8d6b81480ab822e6c3ac423b985c",
+  "combined_git_tree": "ab6b9dfdf2b51aba64c4ee30aa5037368c72c691",
+  "implementation_git_blob_verification": "All 14 starter/src Python files in the source export matched the committed Git blobs through Git Windows line-ending normalization; evaluation provenance hashes the exact executed bytes",
+  "protected_paths_diff_against_team_main": [],
+  "team_main_base": "261eb05a47342cf77ecdc7e918c6b67c8b7a6a3a",
+  "publication_note": "Later branch commits may add documentation/evidence only; runtime remains identified by these commits and the evaluation solution-file hashes"
+}

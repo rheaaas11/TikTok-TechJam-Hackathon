@@ -1,0 +1,8 @@
+{
+  "classification": "superseded_combined_candidate",
+  "scope": "Isolated export of conflict-free committed branch trees, not a Git clone or merged release commit",
+  "leon_source_commit": "666f6d8b5005c2e9d719d2cd2c052babad0656be",
+  "shayna_source_commit": "586a98c6eecc5d9cd357ba5fe4d2395516e02a83",
+  "combined_git_tree": "48a76b127039079a681920970ca5c4a4cb41536b",
+  "superseded_reason": "Subsequent unit-aware monetary parsing fix; original evaluation artifacts remain unchanged"
+}

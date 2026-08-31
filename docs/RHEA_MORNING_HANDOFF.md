@@ -1,177 +1,154 @@
-# Rhea: morning combination and release handoff
+# Rhea: combined Agent and morning release handoff
 
-## Read this first
+## Current status
 
-The branches contain complete file handoffs, but **the combined agent is not yet
-validated**. Simply merging both PRs does not connect Shayna's modules: Leon's
-current `starter/agent.py` still uses its replaceable reference conversation brain.
-The 0.888571 public score belongs to that reference-integrated candidate, not to
-Shayna plus Leon. Rhea retains integration, review, merge, and final release control.
+The three original blockers are implemented: category handling, no-preference
+transitions, and the statistics/response interface. The combined default Agent
+now uses **Shayna's actual parser and dialogue policy**, not Leon's reference brain.
 
-The team's stated submission cutoff is **1 September, 12:00 pm Singapore time**.
-Treat that as the operational deadline; verify the organizer's current submission
-page before the final upload. Finish implementation and testing before that cutoff.
+Final combined check: **211 tests pass; 196/200 public hits; TechnicalScore
+0.857921; p95 314.99 ms; startup 9.66 s; process peak 608.77 MiB**. All 588
+responses contain ten valid unique IDs; no Agent/reset exceptions or observed
+network attempts. The runtime source commits are Leon `666f6d8` and Shayna
+`db55586`; later evidence/documentation commits do not change that implementation.
 
-## Where everything is
+The final measured candidate, exact source commits, scenarios and limitations are
+recorded in `experiments/scoreboard.md` and `experiments/evidence/index.json`.
+Do not substitute the older reference score for the combined score. Passing tests
+alone is not the release gate; compare the complete evaluation artifacts.
 
-| Branch / PR | Contents |
-|---|---|
-| `feature/shayna-profile`, PR #2 | Original profile/dialogue code, tests, demo, guides; complete 28-entry ZIP in `handoffs/shayna/`; checksum inventory and safe catalogue setup helper |
-| `feature/leon-ranking`, PR #1 | All final catalog/retrieval/ranking/adapter/evidence code and tests; experiment tools; latest and historical raw evaluation artifacts; this integration runbook |
+Rhea retains review, merge, final model/policy selection and submission authority.
+Neither feature branch pushes directly to main. The team's operational cutoff is
+1 September at 12:00 pm Singapore time; verify the organizer page before uploading.
 
-No original evaluator, public labels, API contract, scoring configuration, or
-existing evaluator tests are changed by either handoff. The original ZIP includes
-exact archived copies of those files, but they are not extracted over the checkout.
-Do not replace the integrated Agent with the old baseline `agent.py` in the ZIP.
+## 1. Review and combine the two feature branches
 
-Shayna's 80 MB archive preserves every supplied byte, including both catalogue
-files. Her eight new code/test/demo/guide files are also available in normal paths.
-The other shared files were already present on team main. Leon's result artifacts
-are in `experiments/evidence/`, with checksums and explicit latest/historical labels.
+- **PR #2 / feature/shayna-profile:** original 28-entry ZIP preserved byte-for-byte;
+  working profile/dialogue fixes and regression tests; safe catalogue setup helper.
+- **PR #1 / feature/leon-ranking:** catalogue/retrieval/ranking; actual-profile
+  adapter; transactional Agent bridge; one-pass ranking/statistics; tests and raw
+  evaluation evidence.
 
-## 1. Combine reviewed branches in Rhea's integration checkout
+Only the working copies are fixed. The original ZIP is an immutable audit record,
+including its original baseline files. Never copy its old `starter/agent.py` over
+the combined Agent. No protected evaluator, labels, scoring files, API contract or
+original evaluator tests are changed.
 
-Use Rhea's own integration branch, not an assistant push to `main`. Fetch both
-feature branches and review their diffs against main. If using Git locally:
+On Rhea's chosen integration branch, after reviewing both PRs:
 
 ```powershell
 git fetch origin
-# On Rhea's chosen integration branch:
 git merge --no-ff origin/feature/shayna-profile
 git merge --no-ff origin/feature/leon-ranking
 python -B scripts/restore_shayna_catalog.py --verify-only
 python -B scripts/restore_shayna_catalog.py
 python -B -m unittest discover -s tests -v
-python -B scripts/demo_shayna_v2.py
 ```
 
-The setup helper reuses exact existing catalogue files and refuses to overwrite a
-different file. It extracts only the two fixed catalogue filenames. The source
-ZIP itself should remain an immutable handoff record.
+The restore helper verifies every original ZIP entry, restores only the two fixed
+catalogue filenames, reuses exact existing inputs, and refuses conflicting files.
+Python 3.10+ and SQLite FTS5 are expected; no third-party runtime packages or model
+credentials are required.
 
-## 2. Resolve these specific integration blockers
+## 2. What is now connected
 
-### P1: category normalization (Shayna + Leon)
-
-At original Shayna commit `a6c8f78`, `src/profile.py` uses `dresses?`, which does
-not match singular `dress`; plural `dresses` produces category value `dress`.
-Leon can treat `dress` as a known mismatch against catalogue category `dresses`.
-Shayna also stores category only as an active constraint, whereas Leon's canonical
-category field is not derived from it by the current default adapter.
-
-Required: recognize both forms, agree a canonical label, and populate the search
-category from active inclusion constraints while retaining strength and polarity.
-Validation: both “a dress under 50” and “dresses under 50” select the same category
-and do not contradict a catalogue product under “clothing women dresses”.
-
-### P1: no-preference transitions (Shayna)
-
-At original commit `a6c8f78`, the no-preference flag is added but old active values
-and query terms are not removed. Later explicit preferences do not clear the flag,
-so Leon can suppress the new value too.
-
-Validation sequence: “red shoes” -> “no preference for color” -> “make them blue”.
-After turn two, red must not influence the active query; after turn three, blue
-must be active and color must no longer be marked no-preference. Preserve inactive
-history for explanation, not retrieval. Add coverage for other attribute types.
-
-### P1: real API and question-statistics boundary (Rhea + Leon + Shayna)
-
-The supplied guide's `attribute_counts()` does not exist in Leon's implementation.
-His `rank()` already returns `[{"parent_asin": "..."}]`, not a list of strings.
-Wrapping these again produces nested objects instead of valid string IDs.
-
-Leon provides `rank_with_stats()` / `attribute_stats()`, with a structure like
-`{pool_size, attributes: {attribute: metrics}}`. Shayna's dialogue expects
-`{attribute: {value: integer_count}}`. Passing the metrics directly can raise a
-`TypeError`. `top_values` contains only the five most frequent values; it is not a
-complete distribution and must not be presented as one. Missing/ambiguous metadata
-must remain possible after answers instead of being dropped from the pool.
-
-Agree a complete-count/coverage contract or deliberately consume Leon's supplied
-question utility. Until then, `decide_next_turn(profile, None)` is an available
-fixed-priority fallback, **not candidate-aware question selection**.
-
-These are confirmed interface/state issues, not claims that either whole system
-is otherwise optimal. They remain pending unless separately fixed and tested.
-
-## 3. Wire the actual call order
-
-Instantiate one `Ranker(catalog_path, profile_adapter=approved_adapter)` for the
-catalogue. There is not yet an approved `ShaynaProfileAdapter` class to import;
-implement and test the agreed adapter rather than using an invented name.
-
-The intended flow inside Rhea's Agent is:
-
-```python
-# reset(session_id, user_profile)
-session_profiles[session_id] = new_profile(session_id, user_profile)
-
-# respond(session_id, user_message, turn, top_k)
-profile = update_profile(session_profiles[session_id], user_message, turn)
-recommendations, stats = ranker.rank_with_stats(profile, top_k=top_k)
-
-# Temporary honest fallback until the statistics contract is resolved:
-decision = decide_next_turn(profile, candidate_attribute_counts=None)
-session_profiles[session_id] = decision.updated_profile
-return {
-    "message": decision.message,
-    "ask_attribute": decision.ask_attribute,
-    "recommendations": recommendations,  # Already correctly shaped dictionaries.
-}
+```text
+reset -> fresh isolated session
+message -> Shayna update_profile
+        -> ShaynaProfileAdapter (active state only)
+        -> Leon rank_with_stats once
+        -> Shayna decide_next_turn(candidate_statistics=...)
+        -> official response composition
+        -> commit state + cache response
 ```
 
-This is a wiring outline, not an already implemented or score-qualified Agent.
-Shayna chooses the question; Leon ranks; Rhea owns storage, reset/idempotence,
-response validation, integration and any real model-usage accounting. Do not put
-profiles, statistics, evidence, `should_ask`, or `question_value` in the response.
-The existing brain injection hook alone does not implement post-ranking question
-selection; wire that sequence deliberately.
+- Singular/plural category matching is whole-word, with full useful category
+  context retained without carrying cleared colors/materials into later turns.
+- No preference removes old slot values; a later explicit value reactivates it.
+  No *additional* preference preserves known values but marks the slot exhausted.
+- Start-over clears active intent; targeted replacements retain unrelated intent.
+- Rich requirement phrases and measurements survive parsing. Conversational
+  framing is not converted into shopping requirements.
+- Candidate utility consumes coverage and expected remaining pool directly.
+  `top_values` is only a preview, never a complete distribution.
+- An observed unproductive narrow question can trigger broad clarification.
+  Broad clarification repeats only after meaningful new information, not refusal.
+- `rank()` returns product dictionaries already. Do not double-wrap IDs.
+- The response contains only `message`, `ask_attribute`, `recommendations`
+  (and actual `usage` only if a future model client is introduced). No diagnostics,
+  profiles, evidence, `should_ask`, or `question_value` leak into it.
+- Failed search/policy/composition does not commit Shayna state. Exact duplicate
+  turns return independent cached copies; changed duplicate requests are rejected.
+  Reset and interleaved sessions are tested.
 
-## 4. Validate the combined implementation, not just the components
+See `docs/COMBINED_AGENT.md` for interfaces and intentional compatibility limits.
 
-Publication checks on 1 September: Leon's branch passed 98 tests and Shayna's
-passed 28. A conflict-free tree combining Leon `6238c4e` and Shayna `6490b84`
-passed **123 component tests with no skips** in an isolated source export. The
-three shared official evaluator tests are counted only once in that total.
-The actual 28-entry archive verified, both catalogue inputs restored correctly,
-and a second setup run reused them. All 16 retained Leon evidence artifacts also
-passed byte-size and SHA256 checks, including Git's stored bytes.
+## 3. Evaluate the actual combined implementation
 
-These checks do not resolve the three blockers or substitute for evaluating a
-newly wired Shayna-plus-Leon Agent. No full evaluator was rerun for this
-packaging/documentation-only update; the published reference results are unchanged.
+The evaluator's normal `Agent()` uses auto mode: both `src` modules present means
+Shayna. Both absent means Leon-only reference fallback; partial/broken imports
+raise instead of silently changing systems.
 
-Add combined tests for the three blockers above, two interleaved sessions, reset
-clearing old state, repeated calls, no stale override terms, and valid unique Top 10.
-Then run the unmodified official evaluator with fresh output filenames:
+Use fresh output filenames and require the runtime identity:
 
 ```powershell
-python -B -m unittest discover -s tests -v
-python -B -m evaluator.local_evaluator --catalog data/catalog.jsonl --dataset data/public_set.jsonl --output results_rhea_combined.json
-python -B -m experiments.benchmark_runtime --catalog data/catalog.jsonl --dataset data/public_set.jsonl --output results_rhea_summary.json --results-output results_rhea_sessions.json
+python -B -m experiments.benchmark_runtime --catalog data/catalog.jsonl --dataset data/public_set.jsonl --output results_rhea_combined_summary.json --results-output results_rhea_combined_sessions.json --conversation-mode auto --expected-brain starter.shayna_conversation.ShaynaConversationBrain
 git rev-parse HEAD
 git status --short
 ```
 
-The benchmark separately audits raw outputs, latency and provenance and retains
-complete sessions. Its output files must not already exist. Compare HR/MRR/MTTC
-and all four scenario slices, not just aggregate score. A no-LLM implementation
-reports zero/omitted model usage; a later model client must report its actual usage.
+The benchmark calls the unchanged official evaluator and additionally records
+raw response validity, all 200 sessions, actual brain/adapter identities, both
+implementation packages' hashes, input checksums, latency, process memory and
+environment. It refuses an existing output filename.
 
-Reference evidence: `experiments/evidence/candidate-20260831-v4/` recorded 98 tests,
-196/200 public hits, TechnicalScore 0.888571, p95 802.844 ms and startup 31.356 s.
-That startup still exceeds the team's 30-second goal. It is a reference fallback,
-not permission to claim the same result for different conversation logic.
+For an isolated source-copy check, use a new directory outside the checkout:
+
+```powershell
+python -B experiments/verify_snapshot.py --destination D:\ShopSense-validation-final --evaluate --conversation-mode auto --expected-brain starter.shayna_conversation.ShaynaConversationBrain
+```
+
+This uses Python isolated mode, verifies import origins and source hashes before
+and after, and blocks Python socket/DNS calls. It is not an OS-wide network sandbox
+or a claim that a source export is a fresh Git clone.
+
+## 4. Score interpretation and fallback decision
+
+The first wired candidate was rejected after scoring 0.471163. Generic parser,
+question-policy and negated-evidence corrections recovered the second candidate to
+0.853396 (195/200 hits). Final-source reruns are recorded separately in the
+scoreboard; intermediate evidence is retained, not overwritten.
+
+A same-source rerun of the explicit reference system reproduced **0.888571**,
+versus the combined default's **0.857921**. Both find 196/200 targets, but the
+combined system has lower reciprocal rank and takes more turns. Buying hits
+improve by one; Override hits fall by one. The combined candidate therefore is
+**not promoted as a score improvement** under the earlier regression rule merely
+because integration and contract gates pass. Rhea should make the release-policy
+choice explicitly; the comparison and complete results are in the scoreboard.
+
+For a reproducible comparison, the benchmark accepts
+`--conversation-mode reference --expected-brain starter.conversation.ReferenceConversationBrain`.
+This flag changes the benchmark's construction, **not** the official evaluator's
+default Agent. If Rhea deliberately selects reference for submission, she must
+make that explicit in her reviewed integration change, rerun the official entrypoint
+and describe the actual contribution accurately. Do not claim Shayna's parser
+was evaluated when it was bypassed.
+
+Remaining limits: rule-based parsing and finite category aliases; heuristic
+question answerability; non-exhaustive free-text negation; incomplete catalogue
+metadata; no private-set guarantee. The 30-second startup, 1-second p95 and 2-GB
+memory thresholds are team targets, not official organizer limits.
 
 ## 5. Freeze and submit
 
-- Rhea reviews and merges; no direct assistant push to main or automatic merging.
-- Freeze the reviewed runnable commit and record its SHA plus actual environment.
-- Keep the full evaluator result, not only summary metrics or screenshots.
-- Verify README setup and actual demo against that frozen commit.
-- Retain original handoffs and known limitations; do not relabel historical runs.
-- Follow the official final-evaluation FAQ at upstream `9c9e7c9`: once final sessions
-  are released, do not change the frozen solution before its official evaluation.
+1. Review both diffs and ensure no protected paths changed.
+2. Run tests and the full evaluator against the actual combined/release Agent.
+3. Check every scenario and raw-output audit; keep complete per-session results.
+4. Record the merged commit, source/input hashes, environment and exact commands.
+5. Verify the README, catalogue setup and demo against that commit.
+6. Freeze the chosen runnable commit before the Devpost submission deadline; do
+   not modify the solution after the final evaluation package is released.
+7. Rhea performs the reviewed merge and final submission; no automatic merging.
 
 Source of truth: [official final-evaluation FAQ](https://github.com/TechJam2026/techjam-conversational-search/blob/9c9e7c9ff6705142d6ab386dc1c432fc529df893/docs/final_evaluation_faq.md).

@@ -1,10 +1,27 @@
 # Complete Leon development evidence
 
-This folder preserves all 16 identified result/audit artifacts from Leon's work.
-`index.json` records their original byte sizes and SHA256 checksums. These are
+This folder preserves all 16 original result/audit artifacts plus the new actual
+integration checkpoints, same-source reference comparison and source provenance.
+`index.json` records artifact byte sizes and SHA256 checksums. These are
 public-set development outputs; runtime code must never import or read this folder.
 
-## Latest reference candidate
+## Current combined and comparison runs
+
+- `candidate-20260901-integrated-4/`: actual Shayna + Leon, default auto selection;
+  211 tests pass; 196/200 hits; TechnicalScore **0.857921**; p95 314.99 ms;
+  zero invalid outputs, exceptions or observed network attempts.
+- `candidate-20260901-reference-comparison/`: same exact solution files with the
+  explicit reference brain/adapter selected; TechnicalScore **0.888571**.
+- `candidate-20260901-integrated-1/`: rejected initial wiring, score 0.471163.
+- `candidate-20260901-integrated-2/` and `-3/`: superseded development checkpoints.
+
+The final combined and reference runs share the source commits/tree identified
+in `source_commits.json`; the original summary and manifest preserve their actual
+execution hashes and local paths. The combined candidate is **not promoted as a
+score improvement over the reference**. Rhea retains the explicit release choice.
+Both source branches must be combined to get the actual teammate implementation.
+
+## Historical reference candidate
 
 `candidate-20260831-v4/` contains the complete official 200-session result,
 timing/provenance summary, isolated-source manifest, and validation report:

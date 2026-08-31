@@ -14,16 +14,20 @@ Build an AI shopping agent that asks useful follow-up questions and recommends t
 
 For combining both teammates' branches, start with
 [Rhea's morning handoff](docs/RHEA_MORNING_HANDOFF.md). It identifies the real
-interfaces, remaining blockers, catalogue setup, and final verification commands.
+interfaces, measured integration status, catalogue setup, and final verification commands.
 
 The feature-branch implementation and integration guide are documented in
 [Leon ranking guide](docs/LEON_RANKING.md), with measured results in
 [the scoreboard](experiments/scoreboard.md) and interface decisions in
 [the handoff](experiments/TEAM_HANDOFF.md).
 
-`starter/agent.py` is a replaceable integration wrapper and `starter/conversation.py`
-is a reference conversation harness. They do not replace Shayna's profile/question
-ownership or Rhea's integration/release ownership. Existing baseline figures below
+With both feature branches combined, `starter/agent.py` automatically uses Shayna's
+actual parser/question policy through [the tested bridge](docs/COMBINED_AGENT.md).
+It runs Leon's search and candidate statistics once before selecting the question.
+`starter/conversation.py` remains an explicitly selectable reference comparison;
+its historical score must not be attributed to the Shayna integration. These changes
+retain Shayna's profile/question ownership and Rhea's integration/release ownership.
+Existing baseline figures below
 describe the original starter, not this candidate. Rhea reviews and merges the PR;
 feature branches must not push directly to `main`.
 
@@ -58,7 +62,7 @@ python -B scripts/restore_shayna_catalog.py
 
 This verifies all 28 archive entries and restores only the two catalogue inputs;
 it reuses exact existing files and refuses to overwrite different ones. See
-[Rhea's morning handoff](docs/RHEA_MORNING_HANDOFF.md) before wiring the Agent.
+[Rhea's morning handoff](docs/RHEA_MORNING_HANDOFF.md) before running the combined Agent.
 
 If Shayna's branch has not been combined, the original alternative is to download
 `catalog.jsonl.gz` from the official participant-kit release, then use an available
@@ -71,16 +75,19 @@ mv catalog.jsonl data/catalog.jsonl
 
 Verify the downloaded file using the published `SHA256SUMS` file.
 
-## Run the Starter
+## Run the Agent
 
 Python 3.10 or later is recommended. The starter uses only the Python standard library.
 
-```bash
-python3 -m evaluator.local_evaluator
+```powershell
+python -B -m evaluator.local_evaluator
 ```
 
-Edit `starter/agent.py` to implement your system. Do not edit the evaluator or public labels when reporting your local score.
-The command writes per-session results and aggregate metrics to `results.json`.
+The implemented `starter/agent.py` selects Shayna when both reviewed branches are
+combined. Do not edit the evaluator or public labels when reporting your score.
+The command writes per-session results and aggregate metrics to `results.json`;
+use the identity-checked benchmark in [the combined guide](docs/COMBINED_AGENT.md)
+to verify which conversation implementation was actually evaluated.
 
 The included weak BM25 starter scores Hit Rate@10 `0.125`, MRR `0.068034`, and
 MTTC `9.81` on the released public set. See `docs/baseline_results.json`.
@@ -122,7 +129,7 @@ Only exact `parent_asin` equality produces a hit. Core metrics are also reported
 
 ## Model Choice and Cost
 
-Teams may use any legally accessible LLM API or local model. Teams manage their own credentials and must never commit API keys. Model choice, estimated cost, token usage, and latency must be disclosed. Token usage is a feasibility metric, not part of the core technical score. The organizer may reimburse model costs through prizes instead of issuing API keys.
+Teams may use any legally accessible LLM API or local model. Teams manage their own credentials and costs and must never commit API keys. Model choice, estimated cost, token usage, and latency must be disclosed. Token usage is a feasibility metric, not part of the core technical score. The organizer does not provide or reimburse model API keys, tokens or credits; see the [official final-evaluation FAQ](https://github.com/TechJam2026/techjam-conversational-search/blob/9c9e7c9ff6705142d6ab386dc1c432fc529df893/docs/final_evaluation_faq.md). This implementation uses no model API.
 
 ## Files
 
@@ -132,7 +139,7 @@ docs/competition_specification.md participant rules and evaluation protocol
 docs/agent_api_contract.json      machine-readable Agent contract
 docs/evaluation_config.json       scoring configuration
 docs/baseline_results.json        reproducible weak-starter reference score
-starter/agent.py                  editable weak starter
+starter/agent.py                  implemented combined Agent entrypoint
 evaluator/local_evaluator.py      public-set simulator and scorer
 ```
 

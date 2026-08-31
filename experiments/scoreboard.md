@@ -3,10 +3,114 @@
 Only evaluator-backed changes belong here. Runtime code never imports this folder,
 reads `data/public_set.jsonl`, or accesses `ground_truth`.
 
-All identified raw development artifacts are published under `evidence/`, grouped
-as latest V4 versus historical, with a checksum index. They remain reference-brain
-results. Shayna's now-available V2 handoff has not been included in those runs; see
-`../docs/RHEA_MORNING_HANDOFF.md` for the actual integration prerequisites.
+## 1 September: actual Shayna + Leon integration
+
+The final combined review candidate uses **ShaynaConversationBrain** and
+**ShaynaProfileAdapter**, selected by the default `auto` mode. This is a measured
+integration of the real teammate modules, not the historical reference brain.
+
+| Combined candidate | Main change | Tests | HR@10 | MRR | MTTC | TechnicalScore | Status |
+|---|---|---:|---:|---:|---:|---:|---|
+| integrated-1 | Initial real wiring and state/API corrections | 176 | 0.580 | 0.362875 | 7.385 | 0.471163 | Rejected: major retrieval regression |
+| integrated-2 | Preserve meaningful phrases/category context; productive clarification; negation-safe evidence | 202 | 0.975 | 0.685986 | 2.995 | 0.853396 | Superseded |
+| integrated-3 | Prevent preference leakage through category supplements | 207 | 0.975 | 0.685403 | 3.000 | 0.853121 | Superseded by measurement fix |
+| integrated-4 | Keep physical measurements out of monetary bounds | **211** | **0.980** | **0.690403** | **2.960** | **0.857921** | Final combined candidate for Rhea's review |
+
+These are controlled development checkpoints, not independent one-factor
+ablations for every change. The first recovery includes multiple correctness and
+policy repairs. The final measurement fix gains 0.004800 over integrated-3 and
+restores one missed product; no hidden-label logic is added to the runtime.
+
+### Final combined scenarios
+
+| Scenario | Sessions | HR@10 | MRR | MTTC |
+|---|---:|---:|---:|---:|
+| Buying | 80 | 0.975000 | 0.617564 | 2.1875 |
+| Browsing | 80 | 1.000000 | 0.732564 | 2.9625 |
+| Intent Override | 30 | 0.933333 | 0.697579 | 4.966667 |
+| Boundary | 10 | 1.000000 | 0.914286 | 3.1000 |
+
+Final run: **196/200 hits, 588/588 responses with ten valid unique IDs, zero
+Agent/reset exceptions, zero invalid payloads, zero observed socket/DNS attempts**.
+All 211 tests passed without skips. Initialization 9.660097 s; evaluation wall
+78.290614 s; response p50/p95/max 110.93635/314.9887/498.5975 ms; whole-process
+peak 638,341,120 bytes (608.77 MiB). Process memory includes tests and evaluator
+catalogue setup, not incremental Agent memory. No model calls or token cost.
+Host: CPython 3.10.6, Windows build 22621, AMD64. Timings depend on hardware and load;
+they are not a causal speedup comparison to earlier runs on a different environment.
+
+### Reproducible source and evidence
+
+- Leon source commit: `666f6d8b5005c2e9d719d2cd2c052babad0656be`.
+- Shayna source commit: `db55586e2d6f8d6b81480ab822e6c3ac423b985c`.
+- Conflict-free combined Git tree: `ab6b9dfdf2b51aba64c4ee30aa5037368c72c691`.
+- Combined exact-execution solution fingerprint:
+  `fa8b07f7bdeebdb57c49d8c82aac9c655c1e87b6d7042f7bdbd2b86c3698f5ae`.
+- Full results, summary, source manifest, validation and source-commit metadata:
+  `evidence/candidate-20260901-integrated-4/`.
+- Earlier combined checkpoints remain in their own numbered directories; the
+  original 16 historical/reference artifacts are retained without content edits.
+
+The source export matched all 14 committed `starter`/`src` Python files through
+Git's Windows line-ending normalization. The isolated validator hashes the exact
+executed bytes before and after and requires the actual selected brain identity.
+The raw summary has null Git fields because the export deliberately has no `.git`;
+`source_commits.json` supplies the corresponding branch/tree provenance. Subsequent
+publication commits add documentation/evidence only, not different runtime code.
+This is an isolated committed-source export, not a fresh Git clone or Rhea's
+eventual merged/submitted commit. Protected evaluator/data/contract/scoring paths
+have zero diff against team main `261eb05a47342cf77ecdc7e918c6b67c8b7a6a3a`.
+
+The final combined candidate passes the plan's 0.70 target and 0.750401 stretch
+reference, but it is **not a demonstrated improvement over the historical
+0.888571 reference system**. Pre-final failure traces identified ranking and
+discrimination limitations for the four persisting misses, despite matching active
+constraints; that diagnosis is not a full semantic audit. No general optimality or
+private-set performance is claimed. Rhea must explicitly review the comparison
+and choose/freeze the actual release implementation.
+
+All 200 public sessions were available during integration debugging. The existing
+160/40 split is a stability slice after prior public iteration, not an untouched
+holdout for the new changes. These results cannot establish private-set gains.
+
+All new and old artifacts are indexed by checksum in `evidence/index.json`.
+Current integration commands are in `../docs/RHEA_MORNING_HANDOFF.md`.
+
+### Same-source reference comparison (not the combined default)
+
+A separate fresh isolated run selected `ReferenceConversationBrain` explicitly
+from the **same source tree and exact solution fingerprint**. It reproduced
+0.888571, confirming that the reference fallback remains available after the
+search/entrypoint changes. No source or weights changed between these two runs.
+
+| Metric | Actual Shayna + Leon (auto) | Explicit reference comparison |
+|---|---:|---:|
+| HR@10 | 0.980 | 0.980 |
+| MRR | 0.690403 | 0.747905 |
+| MTTC | 2.960 | 2.290 |
+| TechnicalScore | 0.857921 | 0.888571 |
+| Buying HR / MRR / MTTC | 0.975 / 0.617564 / 2.1875 | 0.9625 / 0.637684 / 1.7875 |
+| Browsing HR / MRR / MTTC | 1.0 / 0.732564 / 2.9625 | 1.0 / 0.816939 / 2.1 |
+| Override HR / MRR / MTTC | 0.933333 / 0.697579 / 4.966667 | 0.966667 / 0.823704 / 3.866667 |
+| Boundary HR / MRR / MTTC | 1.0 / 0.914286 / 3.1 | 1.0 / 0.85 / 3.1 |
+
+The combined system is **0.030650 lower**, mainly from reciprocal rank and extra
+turns. Equal total hits conceal one additional Buying hit and one lost Override
+hit. This is an integration/correctness delivery, **not automatic promotion over
+the reference** under the original score-regression rule. Rhea must choose the
+release mode explicitly and evaluate the final official entrypoint; do not hide
+the comparison or claim both systems' best figures as one result.
+
+Reference run: 211 tests passed, 454/454 valid ten-product responses, zero
+exceptions/invalid outputs/network attempts; initialization 9.827693 s, wall
+54.557852 s, p50/p95/max 118.6579/250.7046/386.608 ms, whole-process peak
+637,825,024 bytes. These are workload- and host-dependent observations, not
+normalized timing comparisons. Artifacts: `evidence/candidate-20260901-reference-comparison/`.
+
+## Historical reference-brain development (before actual integration)
+
+The records below remain historical reference-brain results. They do not measure
+Shayna's parser or policy and must not be relabelled as the final combined run.
 
 `experiments/public_split.json` fixes a 160-session development / 40-session
 validation split, stratified by scenario, difficulty, and category. Rebuild it with

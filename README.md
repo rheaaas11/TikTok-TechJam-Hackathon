@@ -10,6 +10,19 @@ Build an AI shopping agent that asks useful follow-up questions and recommends t
 - Leon: catalog search, filtering, ranking, Top 10 recommendations.
 - Rhea: integration, official agent contract, evaluator, README, final submission.
 
+## Leon's Search and Ranking Candidate
+
+The feature-branch implementation and integration guide are documented in
+[Leon ranking guide](docs/LEON_RANKING.md), with measured results in
+[the scoreboard](experiments/scoreboard.md) and interface decisions in
+[the handoff](experiments/TEAM_HANDOFF.md).
+
+`starter/agent.py` is a replaceable integration wrapper and `starter/conversation.py`
+is a reference conversation harness. They do not replace Shayna's profile/question
+ownership or Rhea's integration/release ownership. Existing baseline figures below
+describe the original starter, not this candidate. Rhea reviews and merges the PR;
+feature branches must not push directly to `main`.
+
 ## What You Receive
 
 - A frozen catalog of 50,000 products from the `Clothing_Shoes_and_Jewelry` category of Amazon Reviews 2023.

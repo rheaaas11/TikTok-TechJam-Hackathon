@@ -2,7 +2,10 @@ __pycache__/
 *.py[cod]
 .DS_Store
 .env
-results.json
+results*.json
+evaluation_summary.txt
+catalog.jsonl.gz
+data/catalog.jsonl.gz
 data/catalog.jsonl
 data/releases/
 # Organizer-only code, private evaluation data, manifests, and build reports.

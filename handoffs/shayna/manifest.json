@@ -1,0 +1,207 @@
+{
+  "format_version": 1,
+  "archive": "original-submission-20260831.zip",
+  "archive_sha256": "4be11d592f2fd4a17773192a2e32fa0083b5f8b3bb1d2dff338c3da0f7ec6be5",
+  "archive_size_bytes": 80006960,
+  "source": "User-supplied WhatsApp ZIP, 31 August 2026",
+  "original_handoff_commit": "a6c8f78b5750a5492a9c574918de2c9d3b587d7c",
+  "note": "Every original byte is retained in the archive. Canonical paths document the intended layout, not instructions to overwrite files. Official tracked files remain unchanged. Catalogue inputs are restored locally by the setup helper.",
+  "entries": [
+    {
+      "archive_entry": "test_profile.py",
+      "canonical_path": "tests/test_profile.py",
+      "size_bytes": 3499,
+      "sha256": "1f2ae304e5751832fedd0a4d1d990a026ab9597046210098c9cd0bb796677908",
+      "availability": "canonical file and archived original"
+    },
+    {
+      "archive_entry": "test_evaluator.py",
+      "canonical_path": "tests/test_evaluator.py",
+      "size_bytes": 3280,
+      "sha256": "e07648ee81b1be0a14a4b13be3c566d17959154fef533f7ef6f4c349ce69d5df",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "test_dialogue.py",
+      "canonical_path": "tests/test_dialogue.py",
+      "size_bytes": 1871,
+      "sha256": "e32aba6c96f5ce7e5b5f73d6d5acdf8f635b9c30cceb5fa51a461458d880e6f5",
+      "availability": "canonical file and archived original"
+    },
+    {
+      "archive_entry": "__init__.py",
+      "canonical_path": "tests/__init__.py",
+      "size_bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "agent.py",
+      "canonical_path": "starter/agent.py",
+      "size_bytes": 3778,
+      "sha256": "cd0fdade2d743aaf220b93a6cd3bfa7fb1b9b9065d2fbd174128ed2b0f1b812d",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "__init__ (1).py",
+      "canonical_path": "starter/__init__.py",
+      "size_bytes": 36,
+      "sha256": "03c49004df458e7fb767d172cc896fb5dd08a2aa00686d322248befdc2d7f5d4",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "profile.py",
+      "canonical_path": "src/profile.py",
+      "size_bytes": 15682,
+      "sha256": "d4bab945873a6a38b78d1b8e9ab0094e64e44a1fb27f3a92a7ed6341a99b8c86",
+      "availability": "canonical file and archived original"
+    },
+    {
+      "archive_entry": "dialogue.py",
+      "canonical_path": "src/dialogue.py",
+      "size_bytes": 5546,
+      "sha256": "5142a48a81b20464467dc750f49fd7d818ec6106f644e3f68a58181f14b5d6d8",
+      "availability": "canonical file and archived original"
+    },
+    {
+      "archive_entry": "__init__ (2).py",
+      "canonical_path": "src/__init__.py",
+      "size_bytes": 62,
+      "sha256": "00cb8b0832d8cbab292bb6de600e6c237b785081700fc127deaa3eaf21609a85",
+      "availability": "canonical file and archived original"
+    },
+    {
+      "archive_entry": "SHA256SUMS",
+      "canonical_path": "SHA256SUMS",
+      "size_bytes": 177,
+      "sha256": "cd04b5f52cc06b61b0bd54ad93dc89bab6b0f2ec33d0725c79ed3c193e4de9e9",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "demo_shayna_v2.py",
+      "canonical_path": "scripts/demo_shayna_v2.py",
+      "size_bytes": 1602,
+      "sha256": "e91514a8776be1bc2050d0face5f5567b10b86348d9ac851c83f589b22a961af",
+      "availability": "canonical file and archived original"
+    },
+    {
+      "archive_entry": "README.md",
+      "canonical_path": "README.md",
+      "size_bytes": 5059,
+      "sha256": "5beac7972e6cef08c05b7eb1ecccaededa60579ff219cfa075e2209016797bda",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "local_evaluator.py",
+      "canonical_path": "evaluator/local_evaluator.py",
+      "size_bytes": 13524,
+      "sha256": "79a5ea06f9a1b8c5036f30efa85dc1f36b8f6b06eb8feb8f545dfa767bc45564",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "__init__ (3).py",
+      "canonical_path": "evaluator/__init__.py",
+      "size_bytes": 34,
+      "sha256": "c597e982409b24fe5411298cfe033aeb287eafcf26c33e34b8c43294cff0a917",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "TEAM_ONBOARDING.md",
+      "canonical_path": "docs/TEAM_ONBOARDING.md",
+      "size_bytes": 6664,
+      "sha256": "2b1d888b5c7eea8d7575d8a73efafe0cef60e9ffc3195ad0cacfca27baf96823",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "submission_rules.md",
+      "canonical_path": "docs/submission_rules.md",
+      "size_bytes": 2899,
+      "sha256": "2d312636ceda4576f95e45d5f56f8ac9e106023d3028081a5d59dd274f385b16",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "ShopSense_Three_Person_Delegation.docx",
+      "canonical_path": "docs/ShopSense_Three_Person_Delegation.docx",
+      "size_bytes": 49726,
+      "sha256": "1c1f4769292381f37c63dbf038eb209773ee06db409c2ae0a44be16e330a1397",
+      "availability": "canonical file and archived original"
+    },
+    {
+      "archive_entry": "SHAYNA_V2_DEMO_GUIDE.md",
+      "canonical_path": "docs/SHAYNA_V2_DEMO_GUIDE.md",
+      "size_bytes": 5834,
+      "sha256": "6aaa85e1318c09798d6d2f5b433d956054f1ec2dedc2d91b07ff9f5bee2af1fe",
+      "availability": "canonical file and archived original"
+    },
+    {
+      "archive_entry": "SHAYNA_V1.md",
+      "canonical_path": "docs/SHAYNA_V1.md",
+      "size_bytes": 4558,
+      "sha256": "011b2a91f9677afb51146216f06c7b5f8e34ae64225d4d9c54cbec3f9846e42a",
+      "availability": "canonical file and archived original"
+    },
+    {
+      "archive_entry": "evaluation_config.json",
+      "canonical_path": "docs/evaluation_config.json",
+      "size_bytes": 426,
+      "sha256": "8ee0c899ddc68d521754cf9d2f239a8bc09851fb37c5872567160c30d431aa53",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "competition_specification.md",
+      "canonical_path": "docs/competition_specification.md",
+      "size_bytes": 5147,
+      "sha256": "408e264acbd1e4567b98038d448fd23c9e9b51705149ca7da1bcd1571e10d001",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "baseline_results.json",
+      "canonical_path": "docs/baseline_results.json",
+      "size_bytes": 206,
+      "sha256": "70834f738918191e4108f89ea66bc502db521bccce5ed95d6ccc73563fba5a96",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "agent_api_contract.json",
+      "canonical_path": "docs/agent_api_contract.json",
+      "size_bytes": 2306,
+      "sha256": "635563741dd71c273d540722913eccdc595b4af9b47ade79f38cd42ae45c8822",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "DATA_ATTRIBUTION.md",
+      "canonical_path": "DATA_ATTRIBUTION.md",
+      "size_bytes": 723,
+      "sha256": "23e9f3077536c7e2456fa4df95cd11a8be29e371dd4d102a3afe21ffa3b5db0f",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "README (1).md",
+      "canonical_path": "data/README.md",
+      "size_bytes": 671,
+      "sha256": "a5667489e4b25d473d468ff7a98cfd7ebf301cadb99ad4cb5cd777c3af901049",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "public_set.jsonl",
+      "canonical_path": "data/public_set.jsonl",
+      "size_bytes": 88240,
+      "sha256": "857259f7a438e6188ac63e18995b6ff4489bfcfc4a716a798b9a2aa0ee8f7579",
+      "availability": "canonical file matches after line-ending normalization; exact original archived"
+    },
+    {
+      "archive_entry": "catalog.jsonl.gz",
+      "canonical_path": "data/catalog.jsonl.gz",
+      "size_bytes": 19235996,
+      "sha256": "07fd142631fd6b03e2b4d09988c3eb7d53720e9d57010c79db48eeaada50a8f8",
+      "availability": "archived; setup helper restores ignored local input"
+    },
+    {
+      "archive_entry": "catalog.jsonl",
+      "canonical_path": "data/catalog.jsonl",
+      "size_bytes": 60546327,
+      "sha256": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67",
+      "availability": "archived; setup helper restores ignored local input"
+    }
+  ]
+}

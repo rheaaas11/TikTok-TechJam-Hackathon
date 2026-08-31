@@ -1,0 +1,38 @@
+{
+  "python_isolated": true,
+  "tests_run": 176,
+  "test_failures": 0,
+  "test_errors": 0,
+  "test_skips": 0,
+  "test_network_calls_blocked": 0,
+  "evaluation_requested": true,
+  "expected_brain": "starter.shayna_conversation.ShaynaConversationBrain",
+  "requested_conversation_mode": "shayna",
+  "evaluation_network_calls_blocked": 0,
+  "evaluation_integrity": {
+    "session_count": 200,
+    "responses_audited": 1393,
+    "summary_matches_complete_results": true,
+    "raw_response_checks_passed": true
+  },
+  "runtime_module_origins": {
+    "starter": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\__init__.py",
+    "starter.budget": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\budget.py",
+    "starter.catalog": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\catalog.py",
+    "starter.profile_adapter": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\profile_adapter.py",
+    "starter.retrieval": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\retrieval.py",
+    "starter.ranker": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\ranker.py",
+    "src": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\src\\__init__.py",
+    "src.profile": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\src\\profile.py",
+    "src.dialogue": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\src\\dialogue.py",
+    "evaluator": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\evaluator\\__init__.py",
+    "starter.conversation": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\conversation.py",
+    "starter.agent": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\agent.py",
+    "evaluator.local_evaluator": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\evaluator\\local_evaluator.py",
+    "starter.shayna_adapter": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\shayna_adapter.py",
+    "scripts.restore_shayna_catalog": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\scripts\\restore_shayna_catalog.py",
+    "starter.evidence": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\evidence.py",
+    "starter.shayna_conversation": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-1\\starter\\shayna_conversation.py"
+  },
+  "manifest_unchanged_after_validation": true
+}

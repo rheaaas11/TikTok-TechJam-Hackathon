@@ -5,12 +5,14 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from experiments.make_split import stable_split
 from experiments.benchmark_runtime import (
     TimedAgent, collect_provenance, file_sha256, main, output_paths, percentile,
     process_peak_working_set,
+    require_brain, runtime_identity,
 )
 
 
@@ -144,16 +146,48 @@ class BenchmarkAuditTest(unittest.TestCase):
                  patch("experiments.benchmark_runtime.process_peak_working_set", return_value={"available": False}), \
                  patch("sys.stdout", new_callable=io.StringIO):
                 main(["--output", str(summary), "--results-output", str(results)])
+                agent.assert_called_once_with("data/catalog.jsonl", conversation_mode="auto")
                 agent.return_value.close.assert_called_once()
             self.assertEqual(json.loads(results.read_text(encoding="utf-8")), official)
             saved = json.loads(summary.read_text(encoding="utf-8"))
             self.assertNotIn("sessions", saved["metrics"])
             self.assertEqual(saved["official_results_path"], str(results.resolve()))
             self.assertEqual(saved["turn_latency_ms"]["p50"], 0.0)
+            self.assertIn("brain", saved["runtime_identity"])
+            self.assertEqual(saved["requested_conversation_mode"], "auto")
             with patch("sys.stderr", new_callable=io.StringIO):
                 with self.assertRaises(SystemExit):
                     main(["--output", str(summary), "--results-output", str(results)])
             self.assertEqual(json.loads(results.read_text(encoding="utf-8")), official)
+
+    def test_runtime_identity_and_expected_brain_reject_silent_fallback(self) -> None:
+        class FixtureBrain:
+            pass
+
+        brain = FixtureBrain()
+        agent = SimpleNamespace(brain=brain, ranker=SimpleNamespace(profile_adapter=None), composer=None)
+        identity = runtime_identity(agent)
+        self.assertTrue(identity["brain"].endswith(".FixtureBrain"))
+        self.assertIsNone(identity["profile_adapter"])
+        require_brain(identity, identity["brain"])
+        require_brain(identity, None)
+        with self.assertRaises(ValueError):
+            require_brain(identity, "starter.shayna_conversation.ShaynaConversationBrain")
+
+    def test_wrong_expected_brain_stops_before_evaluation_and_closes_agent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with patch("experiments.benchmark_runtime.collect_provenance", return_value={}), \
+                 patch("experiments.benchmark_runtime.load_jsonl", return_value=[]), \
+                 patch("experiments.benchmark_runtime.catalog_index", return_value=({"A"}, {}, {})), \
+                 patch("experiments.benchmark_runtime.Agent") as agent, \
+                 patch("experiments.benchmark_runtime.evaluate") as evaluate:
+                with self.assertRaisesRegex(ValueError, "Refusing to evaluate"):
+                    main(["--output", str(Path(directory) / "summary.json"),
+                          "--conversation-mode", "shayna",
+                          "--expected-brain", "starter.shayna_conversation.ShaynaConversationBrain"])
+                agent.assert_called_once_with("data/catalog.jsonl", conversation_mode="shayna")
+                evaluate.assert_not_called()
+                agent.return_value.close.assert_called_once()
 
     def test_provenance_fingerprints_sources_and_data_without_environment_secrets(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -176,6 +210,24 @@ class BenchmarkAuditTest(unittest.TestCase):
             self.assertNotEqual(first["starter_source_sha256"], second["starter_source_sha256"])
             self.assertEqual(first["data"]["catalog"]["sha256"], file_sha256(data))
             self.assertEqual(set(first["starter_file_sha256"]), {"starter/agent.py"})
+
+    def test_solution_provenance_includes_nested_teammate_sources(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ("starter/agent.py", "src/__init__.py", "src/profile.py", "src/nested/helper.py"):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("version = 1\n", encoding="utf-8")
+            data = root / "catalog.jsonl"
+            data.write_text("{}\n", encoding="utf-8")
+            with patch("experiments.benchmark_runtime.subprocess.run", side_effect=OSError):
+                first = collect_provenance(data, data, root)
+                (root / "src/profile.py").write_text("version = 2\n", encoding="utf-8")
+                second = collect_provenance(data, data, root)
+            self.assertEqual(first["starter_source_sha256"], second["starter_source_sha256"])
+            self.assertNotEqual(first["solution_source_sha256"], second["solution_source_sha256"])
+            self.assertEqual(set(first["solution_file_sha256"]),
+                             {"starter/agent.py", "src/__init__.py", "src/profile.py", "src/nested/helper.py"})
 
     def test_non_windows_memory_measurement_is_explicitly_unavailable(self) -> None:
         with patch("experiments.benchmark_runtime.sys.platform", "linux"):

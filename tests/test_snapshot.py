@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import io
 import json
 import socket
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
-from experiments.verify_snapshot import REQUIRED, copy_snapshot, offline_guard, verify_evaluation, verify_manifest
+from experiments.verify_snapshot import (
+    REQUIRED, copy_snapshot, main, offline_guard, runtime_module_origins, verify_evaluation, verify_manifest,
+)
 
 
 class SnapshotTest(unittest.TestCase):
@@ -44,6 +49,35 @@ class SnapshotTest(unittest.TestCase):
             copy_snapshot(self.source, self.source / "nested", self.catalog)
         self.assertEqual(list(destination.iterdir()), [])
 
+    def test_optional_teammate_and_script_sources_are_copied_and_hashed(self) -> None:
+        names = ("src/__init__.py", "src/profile.py", "src/nested/helper.py",
+                 "scripts/restore_shayna_catalog.py")
+        for name in names:
+            path = self.source / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("# teammate source\n", encoding="utf-8")
+        (self.source / "src/.env").write_text("never-copy", encoding="utf-8")
+        destination = self.root / "integrated"
+        manifest = copy_snapshot(self.source, destination, self.catalog)
+        for name in names:
+            self.assertIn(name, manifest["file_sha256"])
+            self.assertEqual((destination / name).read_bytes(), (self.source / name).read_bytes())
+        self.assertFalse((destination / "src/.env").exists())
+        (destination / "src/profile.py").write_text("# changed\n", encoding="utf-8")
+        with self.assertRaises(ValueError):
+            verify_manifest(destination)
+
+    def test_teammate_and_script_imports_cannot_escape_snapshot(self) -> None:
+        for name, relative in (("src", "src/__init__.py"), ("src.profile", "src/profile.py"),
+                               ("scripts.restore_shayna_catalog", "scripts/restore_shayna_catalog.py")):
+            with self.subTest(name=name):
+                inside = SimpleNamespace(__file__=str(self.source / relative))
+                origins = runtime_module_origins(self.source, {name: inside})
+                self.assertEqual(origins[name], str((self.source / relative).resolve()))
+                outside = SimpleNamespace(__file__=str(self.root / relative))
+                with self.assertRaises(RuntimeError):
+                    runtime_module_origins(self.source, {name: outside})
+
     def test_changed_snapshot_and_manifest_escape_are_rejected(self) -> None:
         destination = self.root / "candidate"
         copy_snapshot(self.source, destination, self.catalog)
@@ -63,6 +97,25 @@ class SnapshotTest(unittest.TestCase):
             self.assertEqual(len(attempts), 1)
         self.assertIs(socket.create_connection, original)
 
+    def test_cli_forwards_explicit_brain_and_mode_to_isolated_process(self) -> None:
+        destination = self.root / "candidate"
+        expected = "starter.shayna_conversation.ShaynaConversationBrain"
+        with patch("experiments.verify_snapshot.copy_snapshot") as copy, \
+             patch("experiments.verify_snapshot.subprocess.run", return_value=Mock(returncode=0)) as run, \
+             patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(main(["--destination", str(destination), "--catalog", str(self.catalog),
+                                   "--evaluate", "--conversation-mode", "shayna", "--expected-brain", expected]), 0)
+        copy.assert_called_once()
+        command = run.call_args.args[0]
+        self.assertIn("-I", command)
+        self.assertIn("-B", command)
+        self.assertIn("--evaluate", command)
+        self.assertEqual(command[command.index("--conversation-mode") + 1], "shayna")
+        self.assertEqual(command[command.index("--expected-brain") + 1], expected)
+        with patch("sys.stderr", new_callable=io.StringIO):
+            with self.assertRaises(SystemExit):
+                main(["--destination", str(destination), "--expected-brain", expected])
+
     def test_evaluation_requires_complete_matching_sessions_and_zero_raw_errors(self) -> None:
         (self.source / "data/public_set.jsonl").write_text('{"sample_id":"s1"}\n', encoding="utf-8")
         result = {"sample_count": 1, "hit_rate_at_10": 0.0, "sessions": [{"sample_id": "s1"}]}
@@ -79,6 +132,16 @@ class SnapshotTest(unittest.TestCase):
         save()
         # A low retrieval score alone is not an integrity failure.
         self.assertEqual(verify_evaluation(self.source)["session_count"], 1)
+        expected_brain = "starter.shayna_conversation.ShaynaConversationBrain"
+        with self.assertRaises(ValueError):
+            verify_evaluation(self.source, expected_brain)
+        summary["runtime_identity"] = {"brain": "starter.conversation.ReferenceConversationBrain"}
+        save()
+        with self.assertRaises(ValueError):
+            verify_evaluation(self.source, expected_brain)
+        summary["runtime_identity"]["brain"] = expected_brain
+        save()
+        self.assertEqual(verify_evaluation(self.source, expected_brain)["session_count"], 1)
         for field in ("agent_exceptions", "reset_exceptions"):
             summary[field] = 1
             save()

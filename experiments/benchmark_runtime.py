@@ -152,6 +152,20 @@ def collect_provenance(catalog: str | Path, dataset: str | Path, root: Path | No
     digest = hashlib.sha256()
     for name, value in source_hashes.items():
         digest.update(f"{name}\0{value}\n".encode("utf-8"))
+    # Keep the original starter-only fingerprint comparable with older evidence,
+    # and separately fingerprint all implementation packages used after merge.
+    solution_hashes = {}
+    for package in ("starter", "src"):
+        for path in sorted((root / package).rglob("*.py")):
+            relative = path.relative_to(root)
+            if any(part.startswith(".") or part == "__pycache__" for part in relative.parts):
+                continue
+            if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
+                raise ValueError("Solution source symlink/path escape is unsupported")
+            solution_hashes[relative.as_posix()] = file_sha256(path)
+    solution_digest = hashlib.sha256()
+    for name, value in sorted(solution_hashes.items()):
+        solution_digest.update(f"{name}\0{value}\n".encode("utf-8"))
 
     def git_value(arguments: list[str]) -> str | None:
         try:
@@ -173,11 +187,45 @@ def collect_provenance(catalog: str | Path, dataset: str | Path, root: Path | No
         "git_dirty": None if status is None else bool(status),
         "starter_source_sha256": digest.hexdigest(),
         "starter_file_sha256": source_hashes,
+        "solution_source_sha256": solution_digest.hexdigest(),
+        "solution_file_sha256": solution_hashes,
         "data": {
             name: {"path": str(Path(path).resolve()), "sha256": file_sha256(path)}
             for name, path in (("catalog", catalog), ("dataset", dataset))
         },
     }
+
+
+def runtime_identity(agent: Agent) -> dict:
+    """Record the implementation actually selected, not only available files."""
+    ranker = getattr(agent, "ranker", None)
+    components = {
+        "agent": agent,
+        "brain": getattr(agent, "brain", None),
+        "ranker": ranker,
+        "profile_adapter": getattr(ranker, "profile_adapter", None),
+        "composer": getattr(agent, "composer", None),
+    }
+    identities = {}
+    module_files = {}
+    for name, component in components.items():
+        component_type = type(component) if component is not None else None
+        identities[name] = (f"{component_type.__module__}.{component_type.__qualname__}"
+                            if component_type is not None else None)
+        module = sys.modules.get(component_type.__module__) if component_type is not None else None
+        path = getattr(module, "__file__", None)
+        if path is not None:
+            module_files[name] = str(Path(path).resolve())
+    identities["module_files"] = module_files
+    return identities
+
+
+def require_brain(identity: dict, expected_brain: str | None) -> None:
+    if expected_brain is not None and identity.get("brain") != expected_brain:
+        raise ValueError(
+            f"Expected brain {expected_brain!r}; actual brain is {identity.get('brain')!r}. "
+            "Refusing to evaluate a different implementation."
+        )
 
 
 def process_peak_working_set() -> dict:
@@ -232,6 +280,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--dataset", default="data/public_set.jsonl")
     parser.add_argument("--output", default="results_runtime_benchmark.json")
     parser.add_argument("--results-output", help="Fresh path for complete official results including sessions")
+    parser.add_argument("--expected-brain", help="Require this fully qualified brain class; reject silent fallbacks")
+    parser.add_argument("--conversation-mode", choices=("auto", "shayna", "reference"), default="auto",
+                        help="Select the integrated or explicit reference conversation implementation")
     args = parser.parse_args(argv)
     try:
         summary_path, results_path = output_paths(args.output, args.results_output)
@@ -248,9 +299,11 @@ def main(argv: list[str] | None = None) -> None:
         samples = load_jsonl(args.dataset)
         catalog_ids, categories, products = catalog_index(args.catalog)
         started = time.perf_counter()
-        agent = Agent(args.catalog)
+        agent = Agent(args.catalog, conversation_mode=args.conversation_mode)
         initialization = time.perf_counter() - started
         try:
+            identity = runtime_identity(agent)
+            require_brain(identity, args.expected_brain)
             timed = TimedAgent(agent, valid_ids=catalog_ids)
             evaluation_started = time.perf_counter()
             result = evaluate(timed, samples, catalog_ids, categories, products)
@@ -269,6 +322,8 @@ def main(argv: list[str] | None = None) -> None:
                 "raw_response_audit": timed.audit_summary(),
                 "memory": process_peak_working_set(),
                 "provenance": provenance,
+                "runtime_identity": identity,
+                "requested_conversation_mode": args.conversation_mode,
                 "official_results_path": str(results_path) if results_path is not None else None,
                 "metrics": {key: value for key, value in result.items() if key != "sessions"},
             }

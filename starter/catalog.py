@@ -89,6 +89,48 @@ def normalize_text(value: object) -> str:
     return " ".join(TOKEN_RE.findall(text))
 
 
+# Finite grammatical aliases, not stemming or a category ontology. In
+# particular, "dress" must not match "address" or "dressing". Catalog-facing
+# plural labels retain their usual spelling while both forms compare equally.
+_CATEGORY_WORD_FORMS = (
+    ("dresses", "dress"), ("shirts", "shirt"), ("jackets", "jacket"),
+    ("coats", "coat"), ("hoodies", "hoodie"), ("sweaters", "sweater"),
+    ("blazers", "blazer"), ("handbags", "handbag"), ("purses", "purse"),
+    ("shoes", "shoe"), ("boots", "boot"), ("sneakers", "sneaker"),
+    ("sandals", "sandal"), ("heels", "heel"), ("skirts", "skirt"),
+    ("shorts", "short"), ("leggings", "legging"), ("pants", "pant"),
+    ("trousers", "trouser"), ("jeans", "jean"), ("bottoms", "bottom"),
+)
+_CATEGORY_CANONICAL_WORD = {
+    form: forms[0] for forms in _CATEGORY_WORD_FORMS for form in forms
+}
+_CATEGORY_SINGULAR_WORD = {
+    form: forms[-1] for forms in _CATEGORY_WORD_FORMS for form in forms
+}
+
+
+def canonical_category(value: object) -> str:
+    """Normalize only explicitly listed singular/plural category tokens."""
+    return " ".join(_CATEGORY_CANONICAL_WORD.get(word, word)
+                    for word in normalize_text(value).split())
+
+
+def category_terms_match(text: object, value: object) -> bool:
+    """Whole-token category comparison; empty metadata never proves a match."""
+    requested = canonical_category(value).split()
+    known = frozenset(canonical_category(text).split())
+    return bool(requested and known and all(word in known for word in requested))
+
+
+def category_query_variants(value: object) -> tuple[str, ...]:
+    """Supply both exact grammatical forms to lexical retrieval, without OR syntax."""
+    normalized = normalize_text(value)
+    canonical = canonical_category(normalized)
+    singular = " ".join(_CATEGORY_SINGULAR_WORD.get(word, word)
+                        for word in normalized.split())
+    return tuple(dict.fromkeys(item for item in (canonical, normalized, singular) if item))
+
+
 def tokens(value: object) -> list[str]:
     return normalize_text(value).split()
 

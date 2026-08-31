@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if __package__ in (None, ""):
     sys.path.insert(0, str(ROOT))
 
-PACKAGES = ("starter", "evaluator", "experiments", "tests")
+PACKAGES = ("starter", "src", "scripts", "evaluator", "experiments", "tests")
 EXTRA_FILES = (
     "README.md", "LICENSE", "DATA_ATTRIBUTION.md", "SHA256SUMS",
     "data/README.md", "data/public_set.jsonl", "docs/agent_api_contract.json",
@@ -124,7 +124,7 @@ def offline_guard():
         yield attempts
 
 
-def verify_evaluation(root: Path) -> dict:
+def verify_evaluation(root: Path, expected_brain: str | None = None) -> dict:
     """Reject incomplete evidence and errors hidden by evaluator normalization."""
     summary = json.loads((root / "results_snapshot_summary.json").read_text(encoding="utf-8"))
     result = json.loads((root / "results_snapshot_sessions.json").read_text(encoding="utf-8"))
@@ -139,6 +139,8 @@ def verify_evaluation(root: Path) -> dict:
         raise ValueError("Retained session IDs/count do not match the copied dataset")
     if summary.get("metrics") != {key: value for key, value in result.items() if key != "sessions"}:
         raise ValueError("Summary metrics disagree with complete session results")
+    if expected_brain is not None and summary.get("runtime_identity", {}).get("brain") != expected_brain:
+        raise ValueError("Retained benchmark does not prove the requested brain was evaluated")
     audit = summary.get("raw_response_audit", {})
     turns = summary.get("timed_turns", 0)
     if (summary.get("agent_exceptions") != 0 or summary.get("reset_exceptions") != 0
@@ -152,7 +154,24 @@ def verify_evaluation(root: Path) -> dict:
             "summary_matches_complete_results": True, "raw_response_checks_passed": True}
 
 
-def validate_inside(root: Path, *, evaluate: bool) -> int:
+def runtime_module_origins(root: Path, modules: dict | None = None) -> dict:
+    """Check teammate and setup imports too; the starter alone is insufficient."""
+    root = root.resolve()
+    modules = sys.modules if modules is None else modules
+    packages = ("starter", "src", "scripts", "evaluator")
+    origins = {
+        name: str(Path(module.__file__).resolve())
+        for name, module in modules.items()
+        if any(name == package or name.startswith(package + ".") for package in packages)
+        and getattr(module, "__file__", None)
+    }
+    if any(not Path(path).is_relative_to(root) for path in origins.values()):
+        raise RuntimeError("Runtime imported from outside the isolated snapshot")
+    return origins
+
+
+def validate_inside(root: Path, *, evaluate: bool, expected_brain: str | None = None,
+                    conversation_mode: str = "auto") -> int:
     if not sys.flags.isolated:
         raise RuntimeError("Run the copied validator with Python -I")
     verify_manifest(root)
@@ -165,6 +184,8 @@ def validate_inside(root: Path, *, evaluate: bool) -> int:
         "test_failures": len(result.failures), "test_errors": len(result.errors),
         "test_skips": len(result.skipped), "test_network_calls_blocked": len(attempts),
         "evaluation_requested": evaluate,
+        "expected_brain": expected_brain,
+        "requested_conversation_mode": conversation_mode,
     }
     if not result.wasSuccessful():
         with (root / "snapshot_validation.json").open("x", encoding="utf-8") as handle:
@@ -174,19 +195,18 @@ def validate_inside(root: Path, *, evaluate: bool) -> int:
         from experiments.benchmark_runtime import main as benchmark
         print("Tests passed; running the unchanged official evaluator", flush=True)
         with offline_guard() as attempts:
-            benchmark(["--catalog", str(root / "data/catalog.jsonl"),
-                       "--dataset", str(root / "data/public_set.jsonl"),
-                       "--output", str(root / "results_snapshot_summary.json"),
-                       "--results-output", str(root / "results_snapshot_sessions.json")])
+            arguments = ["--catalog", str(root / "data/catalog.jsonl"),
+                         "--dataset", str(root / "data/public_set.jsonl"),
+                         "--output", str(root / "results_snapshot_summary.json"),
+                         "--results-output", str(root / "results_snapshot_sessions.json"),
+                         "--conversation-mode", conversation_mode]
+            if expected_brain is not None:
+                arguments.extend(["--expected-brain", expected_brain])
+            benchmark(arguments)
         report["evaluation_network_calls_blocked"] = len(attempts)
-        report["evaluation_integrity"] = verify_evaluation(root)
+        report["evaluation_integrity"] = verify_evaluation(root, expected_brain)
     verify_manifest(root)
-    runtime_origins = {name: str(Path(module.__file__).resolve())
-                       for name, module in sys.modules.items()
-                       if name.startswith(("starter.", "evaluator.")) and getattr(module, "__file__", None)}
-    if any(not Path(path).is_relative_to(root) for path in runtime_origins.values()):
-        raise RuntimeError("Runtime imported from outside the isolated snapshot")
-    report["runtime_module_origins"] = runtime_origins
+    report["runtime_module_origins"] = runtime_module_origins(root)
     report["manifest_unchanged_after_validation"] = True
     with (root / "snapshot_validation.json").open("x", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2)
@@ -200,16 +220,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--destination", type=Path)
     parser.add_argument("--catalog", type=Path, default=ROOT / "data/catalog.jsonl")
     parser.add_argument("--evaluate", action="store_true")
+    parser.add_argument("--expected-brain", help="Require a fully qualified brain class during evaluation")
+    parser.add_argument("--conversation-mode", choices=("auto", "shayna", "reference"), default="auto")
     parser.add_argument("--inside", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
+    if args.expected_brain is not None and not args.evaluate:
+        parser.error("--expected-brain requires --evaluate")
     if args.inside:
-        return validate_inside(ROOT, evaluate=args.evaluate)
+        return validate_inside(ROOT, evaluate=args.evaluate, expected_brain=args.expected_brain,
+                               conversation_mode=args.conversation_mode)
     if args.destination is None:
         parser.error("--destination must name a new directory outside the source tree")
     copy_snapshot(ROOT, args.destination, args.catalog)
     command = [sys.executable, "-I", "-B", str(args.destination.resolve() / "experiments/verify_snapshot.py"), "--inside"]
     if args.evaluate:
         command.append("--evaluate")
+        command.extend(["--conversation-mode", args.conversation_mode])
+    if args.expected_brain is not None:
+        command.extend(["--expected-brain", args.expected_brain])
     print(f"Retained source snapshot: {args.destination.resolve()}", flush=True)
     return subprocess.run(command, cwd=args.destination.resolve(), check=False).returncode
 

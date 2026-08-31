@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import math
+import re
+import unicodedata
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +15,7 @@ from starter.catalog import (
     STYLES,
     CatalogIndex,
     Product,
+    category_terms_match,
     extract_known_terms,
     normalize_text,
 )
@@ -36,6 +39,18 @@ _STRUCTURED_VOCABULARIES = {
     "size": SIZES,
     "style": STYLES,
 }
+_FREE_TEXT_NEGATION = re.compile(
+    r"\b(?:no|not|without|never|non|lacks?|avoid(?:s|ing)?)\b|\bfree\s+(?:of|from)\b"
+)
+_FREE_TEXT_NEGATED_PREFIX = re.compile(
+    r"\b(?:no|without|not|never|non|free\s+(?:of|from))"
+    r"(?:[\s\-\u2010-\u2015]+(?:any|the|need|needs|needed|requiring|require|requires|required|of|for|to|be|more)){0,5}"
+    r"[\s\-\u2010-\u2015]+$"
+)
+_FREE_TEXT_NEGATED_SUFFIX = re.compile(
+    r"^(?:[\s\-\u2010-\u2015]+free\b(?!\s+(?:shipping|delivery|returns?|size)\b)"
+    r"|\s+(?:(?:is|are)\s+)?(?:not|never)\s+(?:needed|required|necessary|recommended)\b)"
+)
 
 
 def _contains_all(text: str, value: str) -> bool:
@@ -70,6 +85,44 @@ def _field_text(product: Product, attribute: str) -> str:
 def _budget_relation(product: Product, constraint: ConstraintView) -> int:
     """Return 1 match, -1 contradiction, or 0 unknown for a budget clause."""
     return budget_relation(product.price, constraint.value)
+
+
+def _free_text_exclusion_relation(product: Product, value: str) -> int:
+    """Require affirmative local phrase evidence before excluding a product.
+
+    Free-text token presence cannot prove that a negated feature is present:
+    ``No ironing`` must not violate an exclusion of ``ironing``. Dispersed
+    multiword matches, unclear scope, and mixed positive/negative fields remain
+    unknown. This guard intentionally does not reinterpret positive requests or
+    the separately normalized material/color/size/style evidence.
+    """
+    words = normalize_text(value).split()
+    if not words:
+        return 0
+    # Only contiguous words (including hyphenated words) form evidence. A
+    # phrase cannot be assembled across sentences, catalog fields or lists of
+    # unrelated words merely because each token appears somewhere.
+    phrase = re.compile(r"(?<!\w)" + r"[\s\-\u2010-\u2015]+".join(
+        re.escape(word) for word in words
+    ) + r"(?!\w)")
+    affirmative = False
+    fields = product.raw_fields or (
+        product.title, product.categories, product.features,
+        product.details, product.store, product.description,
+    )
+    for field in fields:
+        text = unicodedata.normalize("NFKC", field).casefold()
+        for match in phrase.finditer(text):
+            # Preserve clause/field boundaries: a final 'no' in another field
+            # cannot negate this one. Unparsed coordination stays conservative.
+            prefix = re.split(r"[.;!?\n]", text[:match.start()])[-1]
+            suffix = re.split(r"[.;!?\n]|\b(?:and|but|or)\b", text[match.end():], maxsplit=1)[0]
+            if _FREE_TEXT_NEGATED_PREFIX.search(prefix) or _FREE_TEXT_NEGATED_SUFFIX.search(suffix):
+                return 0
+            if _FREE_TEXT_NEGATION.search(prefix) or _FREE_TEXT_NEGATION.search(suffix):
+                return 0
+            affirmative = True
+    return 1 if affirmative else 0
 
 
 def constraint_relation(product: Product, constraint: ConstraintView) -> int:
@@ -107,6 +160,12 @@ def constraint_relation(product: Product, constraint: ConstraintView) -> int:
     field = _field_text(product, constraint.attribute)
     if not field:
         return 0
+    if constraint.attribute == "category":
+        return 1 if category_terms_match(field, constraint.value) else -1
+    if constraint.polarity == "exclude" and constraint.attribute != "brand":
+        if not _contains_all(field, constraint.value):
+            return 0
+        return _free_text_exclusion_relation(product, constraint.value)
     if _contains_all(field, constraint.value):
         return 1
     if constraint.attribute in {"category", "brand"}:
@@ -212,7 +271,7 @@ class Ranker:
             )
             category_match = (
                 1.0
-                if profile.category and _contains_all(product.categories, profile.category)
+                if profile.category and category_terms_match(product.categories, profile.category)
                 else 0.0
             )
             profile_matches = sum(

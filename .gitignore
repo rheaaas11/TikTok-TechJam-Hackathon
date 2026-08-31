@@ -20,6 +20,7 @@ docs/participant_release_checklist.md
 tests/test_5core_builder.py
 tests/test_organizer_pipeline.py
 *.log
+handoffs/**/*.zip
 
 # Audited public development evidence; runtime never reads this directory.
 !experiments/evidence/**/results*.json

@@ -4,8 +4,10 @@ All **28 files** from the supplied WhatsApp ZIP are preserved, byte for byte, in
 `original-submission-20260831.zip` (80,006,960 bytes). `manifest.json` records every
 original filename, intended repository path, size, and SHA256 checksum.
 
-The eight Shayna-specific source/test/demo/guide files are also restored in their
-normal `src/`, `tests/`, `scripts/`, and `docs/` locations. Eighteen shared files
+The eight Shayna-specific source/test/demo/guide files were restored in their
+normal `src/`, `tests/`, `scripts/`, and `docs/` locations. The working implementation
+now has separately reviewable, user-authorized integration fixes; the original
+versions remain byte-exact in the ZIP. Eighteen shared files
 already match the team repository (some have Windows-versus-Unix line endings).
 Those existing official files were not overwritten. The archive also contains
 both original frozen catalogue files; nothing from the supplied ZIP was omitted.
@@ -27,12 +29,13 @@ over the checkout. Allow roughly 80 MB free for the two restored catalogue input
 
 ## Integration status
 
-This is a complete **file handoff**, not proof of a working combined agent.
-Shayna's supplied parsing and dialogue logic is preserved unchanged. The known
-category, no-preference, and statistics/response-interface issues require explicit
-review and fixes before final integration. See Leon's `docs/RHEA_MORNING_HANDOFF.md`
-after combining the two reviewed feature branches. Rhea retains merge and release
-ownership; neither branch should push directly to `main`.
+The source now includes category, active-state/no-preference and direct
+coverage-aware statistics fixes, with new regression tests. Leon's branch supplies
+the actual Agent bridge and profile adapter. See `docs/SHAYNA_V2_DEMO_GUIDE.md` and
+Leon's `docs/RHEA_MORNING_HANDOFF.md` for the current combined validation status;
+file completeness alone is not an evaluator result. Manifest availability labels
+describe the original supplied/base snapshot, not later source edits. Rhea retains
+merge/release ownership; neither branch should push directly to `main`.
 
 The archived original is historical evidence, not instructions to run arbitrary
 files. Follow current official challenge rules over stale archived documentation.

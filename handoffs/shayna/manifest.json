@@ -5,7 +5,7 @@
   "archive_size_bytes": 80006960,
   "source": "User-supplied WhatsApp ZIP, 31 August 2026",
   "original_handoff_commit": "a6c8f78b5750a5492a9c574918de2c9d3b587d7c",
-  "note": "Every original byte is retained in the archive. Canonical paths document the intended layout, not instructions to overwrite files. Official tracked files remain unchanged. Catalogue inputs are restored locally by the setup helper.",
+  "note": "Every original byte is retained in the archive. Canonical paths and availability describe the original handoff/base snapshot, not instructions to overwrite later integrated files. User-authorized working-source fixes may now differ from those archived originals. Original-entry hashes remain unchanged. Official tracked files remain unchanged. Catalogue inputs are restored locally by the setup helper.",
   "entries": [
     {
       "archive_entry": "test_profile.py",

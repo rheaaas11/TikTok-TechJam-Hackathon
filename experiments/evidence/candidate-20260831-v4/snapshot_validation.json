@@ -1,0 +1,28 @@
+{
+  "python_isolated": true,
+  "tests_run": 98,
+  "test_failures": 0,
+  "test_errors": 0,
+  "test_skips": 0,
+  "test_network_calls_blocked": 0,
+  "evaluation_requested": true,
+  "evaluation_network_calls_blocked": 0,
+  "evaluation_integrity": {
+    "session_count": 200,
+    "responses_audited": 454,
+    "summary_matches_complete_results": true,
+    "raw_response_checks_passed": true
+  },
+  "runtime_module_origins": {
+    "starter.budget": "C:\\Users\\user\\Documents\\shopsense-validation\\candidate-20260831-v4\\starter\\budget.py",
+    "starter.catalog": "C:\\Users\\user\\Documents\\shopsense-validation\\candidate-20260831-v4\\starter\\catalog.py",
+    "starter.profile_adapter": "C:\\Users\\user\\Documents\\shopsense-validation\\candidate-20260831-v4\\starter\\profile_adapter.py",
+    "starter.retrieval": "C:\\Users\\user\\Documents\\shopsense-validation\\candidate-20260831-v4\\starter\\retrieval.py",
+    "starter.ranker": "C:\\Users\\user\\Documents\\shopsense-validation\\candidate-20260831-v4\\starter\\ranker.py",
+    "starter.conversation": "C:\\Users\\user\\Documents\\shopsense-validation\\candidate-20260831-v4\\starter\\conversation.py",
+    "starter.agent": "C:\\Users\\user\\Documents\\shopsense-validation\\candidate-20260831-v4\\starter\\agent.py",
+    "evaluator.local_evaluator": "C:\\Users\\user\\Documents\\shopsense-validation\\candidate-20260831-v4\\evaluator\\local_evaluator.py",
+    "starter.evidence": "C:\\Users\\user\\Documents\\shopsense-validation\\candidate-20260831-v4\\starter\\evidence.py"
+  },
+  "manifest_unchanged_after_validation": true
+}

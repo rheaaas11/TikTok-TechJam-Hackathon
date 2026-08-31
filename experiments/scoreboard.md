@@ -3,6 +3,11 @@
 Only evaluator-backed changes belong here. Runtime code never imports this folder,
 reads `data/public_set.jsonl`, or accesses `ground_truth`.
 
+All identified raw development artifacts are published under `evidence/`, grouped
+as latest V4 versus historical, with a checksum index. They remain reference-brain
+results. Shayna's now-available V2 handoff has not been included in those runs; see
+`../docs/RHEA_MORNING_HANDOFF.md` for the actual integration prerequisites.
+
 `experiments/public_split.json` fixes a 160-session development / 40-session
 validation split, stratified by scenario, difficulty, and category. Rebuild it with
 `python experiments/make_split.py`; the manifest contains sample IDs only.

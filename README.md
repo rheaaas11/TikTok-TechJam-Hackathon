@@ -12,6 +12,10 @@ Build an AI shopping agent that asks useful follow-up questions and recommends t
 
 ## Leon's Search and Ranking Candidate
 
+For combining both teammates' branches, start with
+[Rhea's morning handoff](docs/RHEA_MORNING_HANDOFF.md). It identifies the real
+interfaces, remaining blockers, catalogue setup, and final verification commands.
+
 The feature-branch implementation and integration guide are documented in
 [Leon ranking guide](docs/LEON_RANKING.md), with measured results in
 [the scoreboard](experiments/scoreboard.md) and interface decisions in

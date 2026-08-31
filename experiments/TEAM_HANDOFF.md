@@ -7,6 +7,14 @@ that inspected team revision. The reference conversation module is a test harnes
 not proof of team integration. Rhea decides whether and when to merge this PR.
 See `scoreboard.md` for measured results and their exact limitations.
 
+Update: Shayna's actual supplied V2 code is now published on
+`feature/shayna-profile` (PR #2, original handoff `a6c8f78`). The previous statement
+about absent teammate code describes the base revision only. See
+`../docs/RHEA_MORNING_HANDOFF.md` for the concrete category, no-preference, and API
+issues found against that handoff. Raw latest and historical evidence is now
+published under `evidence/`; original metadata/checksums are preserved. This update
+does not claim those integration issues have been fixed or the combined agent tested.
+
 ## Search boundary
 
 ```python
@@ -57,7 +65,10 @@ Priority P1, integration/test gap:
 
 1. Update the active profile through Shayna's module.
 2. Call `rank_with_stats()` once if the question policy needs candidate statistics.
-3. Pass the statistics to Shayna's question policy, which chooses the question.
+3. Use an agreed statistics conversion or policy adaptation before calling
+   Shayna's question policy. Her supplied V2 expects complete value-count maps,
+   not Leon's metrics objects or truncated `top_values`. Until that boundary is
+   tested, `decide_next_turn(profile, None)` is a fixed-priority fallback only.
 4. Validate/compose only the official response fields. Do not serialize the
    profile, statistics, route diagnostics, or demo evidence into the response.
 

@@ -1,0 +1,99 @@
+{
+  "initialization_seconds": 32.903784,
+  "evaluation_wall_seconds": 175.483364,
+  "timed_turns": 454,
+  "agent_exceptions": 0,
+  "reset_exceptions": 0,
+  "turn_latency_ms": {
+    "p50": 380.3539,
+    "p95": 810.0454,
+    "maximum": 980.0314
+  },
+  "raw_response_audit": {
+    "responses_audited": 454,
+    "invalid_responses": 0,
+    "violations_by_affected_response": {},
+    "recommendation_count_distribution": {
+      "10": 454
+    },
+    "catalog_membership_checked": true,
+    "team_gate": "at most min(top_k, 10); stricter than official raw maxItems=100"
+  },
+  "memory": {
+    "available": true,
+    "peak_working_set_bytes": 634236928,
+    "scope": "process lifetime peak; includes evaluator/catalog setup, not incremental Agent memory",
+    "method": "Windows GetProcessMemoryInfo.PeakWorkingSetSize"
+  },
+  "provenance": {
+    "captured_at_utc": "2026-08-31T10:56:40.729469+00:00",
+    "python_version": "3.10.6",
+    "python_implementation": "CPython",
+    "platform": "Windows-10-10.0.22631-SP0",
+    "machine": "AMD64",
+    "git_head": "34078351e1c3615e5505a2e829600b56a542e462",
+    "git_dirty": true,
+    "starter_source_sha256": "4bbfd87ae2978d06e828e76292e2547de87e3542ff6f71c5643e3037383f6622",
+    "starter_file_sha256": {
+      "starter/__init__.py": "7c597cb17dd97c2246abfa3a369a4c584db881b3c91057cfeac1a4c39cc71a03",
+      "starter/agent.py": "4937b96ed0bcce98623b07d7e3a9ff6b95dedacb45e7e4e84a36ea3f144d9cee",
+      "starter/budget.py": "e0489c1837087deaa6e36673bfb10d30d56facbce1bbd3754152052c6c2ec110",
+      "starter/catalog.py": "46fb884a1c83d375705a442f99c16dd4f5b735ceac92a9bbe97417652f3d0ef5",
+      "starter/conversation.py": "c83f553cce007f759c948c9166a1c2aa104a559e34aebeaa1624282e0112cbb9",
+      "starter/evidence.py": "1abba2d6ce282a66c122e944bf54f80d025cb2f4014b7db6d13ba2a1d9550e61",
+      "starter/profile_adapter.py": "466e9952d665bbc5998572c85dd9c79b77122bcb94245af94eb2fa3ef5b8ba5d",
+      "starter/ranker.py": "c8136e14e2131eef50ce3c4c128bb3c45729c05a641340ee2c5df68089c96f61",
+      "starter/retrieval.py": "8be961ac540a8a378ad5119fde8aaff32799d72b73f8976a2e4ddd41856bf24f"
+    },
+    "data": {
+      "catalog": {
+        "path": "C:\\Users\\user\\Documents\\techjam-conversational-search\\data\\catalog.jsonl",
+        "sha256": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67"
+      },
+      "dataset": {
+        "path": "C:\\Users\\user\\Documents\\techjam-conversational-search\\data\\public_set.jsonl",
+        "sha256": "571359a8a69014c43fc30d39c996c4a28e875dccc249dffc707358757beb16c0"
+      }
+    }
+  },
+  "official_results_path": "C:\\Users\\user\\Documents\\techjam-conversational-search\\results_correctness_20260831_sessions.json",
+  "metrics": {
+    "sample_count": 200,
+    "hit_rate_at_10": 0.98,
+    "mrr": 0.747905,
+    "mttc": 2.29,
+    "efficiency": 0.871,
+    "recommended_technical_score": 0.888571,
+    "reported_token_usage": {
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0
+    },
+    "scenario_metrics": {
+      "boundary": {
+        "sample_count": 10,
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.85,
+        "mttc": 3.1
+      },
+      "browsing": {
+        "sample_count": 80,
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.816939,
+        "mttc": 2.1
+      },
+      "buying": {
+        "sample_count": 80,
+        "hit_rate_at_10": 0.9625,
+        "mrr": 0.637684,
+        "mttc": 1.7875
+      },
+      "intent_override": {
+        "sample_count": 30,
+        "hit_rate_at_10": 0.966667,
+        "mrr": 0.823704,
+        "mttc": 3.866667
+      }
+    }
+  }
+}

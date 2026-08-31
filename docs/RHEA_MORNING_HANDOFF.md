@@ -130,6 +130,18 @@ selection; wire that sequence deliberately.
 
 ## 4. Validate the combined implementation, not just the components
 
+Publication checks on 1 September: Leon's branch passed 98 tests and Shayna's
+passed 28. A conflict-free tree combining Leon `6238c4e` and Shayna `6490b84`
+passed **123 component tests with no skips** in an isolated source export. The
+three shared official evaluator tests are counted only once in that total.
+The actual 28-entry archive verified, both catalogue inputs restored correctly,
+and a second setup run reused them. All 16 retained Leon evidence artifacts also
+passed byte-size and SHA256 checks, including Git's stored bytes.
+
+These checks do not resolve the three blockers or substitute for evaluating a
+newly wired Shayna-plus-Leon Agent. No full evaluator was rerun for this
+packaging/documentation-only update; the published reference results are unchanged.
+
 Add combined tests for the three blockers above, two interleaved sessions, reset
 clearing old state, repeated calls, no stale override terms, and valid unique Top 10.
 Then run the unmodified official evaluator with fresh output filenames:

@@ -48,7 +48,21 @@ The session ends when the target product appears in the scored Top 10 or after t
 
 ## Download the Catalog
 
-Download `catalog.jsonl.gz` from the GitHub Release attached to this repository, then run:
+After combining Shayna's and Leon's reviewed branches, the preferred Windows-safe
+setup uses the complete original handoff already included in the repository:
+
+```powershell
+python -B scripts/restore_shayna_catalog.py --verify-only
+python -B scripts/restore_shayna_catalog.py
+```
+
+This verifies all 28 archive entries and restores only the two catalogue inputs;
+it reuses exact existing files and refuses to overwrite different ones. See
+[Rhea's morning handoff](docs/RHEA_MORNING_HANDOFF.md) before wiring the Agent.
+
+If Shayna's branch has not been combined, the original alternative is to download
+`catalog.jsonl.gz` from the official participant-kit release, then use an available
+gzip tool (the following commands assume a Unix-like shell):
 
 ```bash
 gzip -dk catalog.jsonl.gz

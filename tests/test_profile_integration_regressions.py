@@ -222,6 +222,34 @@ class ProfileIntegrationRegressions(unittest.TestCase):
         values = [c.value for c in extract_constraints("Budget around 80", 1) if c.attribute == "budget"]
         self.assertEqual(values, ["around 80"])
 
+    def test_physical_measurements_are_not_money_bounds(self):
+        for phrase in ("fits up to 8-inch wrist circumference", "under 3 pounds",
+                       "between 10 and 12 inches", "around 2 kilograms",
+                       "lasts up to 8 hours", "at least 4 stars", "rating at most 5",
+                       "under 30%", "between 2 and 4 years", "up to 5 out of 5"):
+            with self.subTest(phrase=phrase):
+                self.assertFalse(any(c.attribute == "budget" for c in extract_constraints(phrase, 1)))
+
+    def test_measurement_clause_is_retained_without_false_budget(self):
+        detail = "Gold-tone 18mm stainless steel expansion band fits up to 8-inch wrist circumference"
+        profile = update_profile(new_profile("s", {}), "For that, what matters is: color: green; " + detail + ".", 1)
+        self.assertFalse(any(c.attribute == "budget" for c in profile.active_constraints))
+        self.assertIn(detail.lower(), profile.query_terms)
+        self.assertIn(("color", "green", "include"), active(profile))
+
+    def test_real_money_bounds_and_plain_budget_shorthand_still_work(self):
+        examples = {"under $50": "under 50", "at most 50": "<= 50",
+                    "up to $8": "<= 8", "between $10 and $12": "between 10 and 12",
+                    "budget under 50": "under 50", "around $30": "around 30"}
+        for phrase, expected in examples.items():
+            with self.subTest(phrase=phrase):
+                self.assertIn(expected, [c.value for c in extract_constraints(phrase, 1) if c.attribute == "budget"])
+
+    def test_measurement_answer_is_not_forced_into_budget_slot(self):
+        profile = replace(new_profile("s", {}), last_asked_attribute="budget")
+        profile = update_profile(profile, "up to 8-inch wrist circumference", 1)
+        self.assertFalse(any(c.attribute == "budget" for c in profile.active_constraints))
+
     def test_browsing_uncertainty_is_not_a_negative_product_feature(self):
         profile = update_profile(new_profile("s", {}), "I'm not sure, still exploring", 1)
         self.assertEqual(profile.intent_mode, "browsing")

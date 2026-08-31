@@ -86,6 +86,18 @@ RANGE_BUDGET_RE = re.compile(
     re.I,
 )
 AROUND_BUDGET_RE = re.compile(r"\b(?:around|about|roughly)\s*\$?\s*(\d{1,5}(?:\.\d{1,2})?)", re.I)
+NON_MONEY_UNIT_RE = re.compile(
+    r"\s*[-\u2013\u2014]?\s*(?:[\"\u2032\u2033%]|"
+    r"(?:inches?|inch|millimeters?|millimetres?|centimeters?|centimetres?|meters?|metres?|"
+    r"mm|cm|m|feet|foot|ft|ounces?|oz|pounds?|lbs?|kilograms?|kg|grams?|g|"
+    r"hours?|hrs?|minutes?|mins?|seconds?|secs?|days?|weeks?|months?|years?|"
+    r"stars?|ratings?|percent|degrees?)\b|out\s+of\s+\d|/\s*\d)",
+    re.I,
+)
+NON_MONEY_CONTEXT_RE = re.compile(
+    r"\b(?:fits?|sized?|sizing|rated?|rating|score|weighs?|weighing|weight|length|width|"
+    r"height|circumference|lasts?|lasting|duration|ages?|aged)\s*(?:(?:is|of|at|for)\s*)?[:=]?\s*$", re.I
+)
 SIZE_RE = re.compile(r"\b(?:size\s*\d{1,2}(?:\.\d)?|\d{1,2}\s*(?:w|waist)|small|medium|large|xl|xxl)\b", re.I)
 NEGATIVE_RE = re.compile(r"(?=\b(?:no|not|without|avoid|cannot wear|can't wear)\s+([a-z][a-z0-9 -]{1,100}))", re.I)
 BRAND_RE = re.compile(r"\b(?:brand|by|from)\s+(?:is\s+)?([A-Za-z][A-Za-z0-9&' -]{1,30})", re.I)
@@ -197,6 +209,21 @@ def _trim_brand(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip().lower()
 
 
+def _is_money_bound(message: str, match: re.Match[str]) -> bool:
+    """Do not turn product measurements into monetary hard constraints.
+
+    Plain 'at most 50' remains the existing budget shorthand. A physical unit
+    or an explicit measurement/rating context takes precedence unless the
+    numeric expression itself supplies an unambiguous currency symbol.
+    """
+    if "$" in match.group(0):
+        return True
+    suffix = message[match.end():]
+    if suffix[:1].isdigit() or NON_MONEY_UNIT_RE.match(suffix):
+        return False
+    return not NON_MONEY_CONTEXT_RE.search(message[max(0, match.start() - 48):match.start()])
+
+
 def extract_constraints(message: str, turn: int) -> tuple[Constraint, ...]:
     """Extract lightweight, deterministic shopping constraints from one message.
 
@@ -248,14 +275,16 @@ def extract_constraints(message: str, turn: int) -> tuple[Constraint, ...]:
                     "<=" if operator in {"at most", "maximum", "max", "up to"} else
                     ">=" if operator == "at least" else
                     ">" if operator in {"over", "above", "more than"} else "around")
-        if not is_negative(match):
+        if not is_negative(match) and _is_money_bound(message, match):
             result.append(Constraint("budget", f"{relation} {value}", "hard", "include", turn))
 
     for match in RANGE_BUDGET_RE.finditer(message):
-        result.append(Constraint("budget", f"between {match.group(1)} and {match.group(2)}", "hard", "include", turn))
+        if not is_negative(match) and _is_money_bound(message, match):
+            result.append(Constraint("budget", f"between {match.group(1)} and {match.group(2)}", "hard", "include", turn))
 
     for match in AROUND_BUDGET_RE.finditer(message):
-        result.append(Constraint("budget", f"around {match.group(1)}", "hard", "include", turn))
+        if not is_negative(match) and _is_money_bound(message, match):
+            result.append(Constraint("budget", f"around {match.group(1)}", "hard", "include", turn))
 
     for match in SIZE_RE.finditer(message):
         value = match.group(0).lower()
@@ -365,6 +394,9 @@ def _phrase_constraint(attribute: Attribute, value: str, message: str, turn: int
         value = "size " + value
     if attribute == "budget" and re.fullmatch(r"\$?\d+(?:\.\d+)?", value):
         value = "around " + value.lstrip("$")
+    if attribute == "budget" and "$" not in value:
+        if any(NON_MONEY_UNIT_RE.match(value, match.end()) for match in re.finditer(r"\d+(?:\.\d+)?", value)):
+            return None
     strength = "hard" if polarity == "exclude" else _constraint_strength(message, attribute)
     return Constraint(attribute, value, strength, polarity, turn)
 

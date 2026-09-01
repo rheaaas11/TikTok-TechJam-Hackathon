@@ -7,9 +7,9 @@ Build an AI shopping agent that asks useful follow-up questions and recommends t
 ## Team Ownership
 
 Rhea, Shayna, Leon
-- Product DNA, conversation state, constraints, useful questions.
-- Catalog search, filtering, ranking, Top 10 recommendations.
-- Integration, official agent contract, evaluator, README, final submission.
+- Shayna: Product DNA, conversation state, constraints, useful questions.
+- Leon: Catalog search, filtering, ranking, Top 10 recommendations.
+- Rhea: Integration, official agent contract, evaluator, README, final submission.
 
 ## Current Release Candidate
 
@@ -200,3 +200,32 @@ evaluator/local_evaluator.py      public-set simulator and scorer
 
 The catalog and sessions are derived from Amazon Reviews 2023 by McAuley Lab, UCSD. See `DATA_ATTRIBUTION.md` before using or redistributing the data.
 Sessions are sampled deterministically from the official Clothing 5-core leave-last-out split and joined to the frozen catalog.
+
+
+## Summary: 
+Project Overview:
+ShopSense is a conversational shopping copilot for the TikTok TechJam Conversational E-Commerce Search Challenge. It helps a shopper find a hidden target product from a frozen 50,000-product catalog by asking useful follow-up questions, tracking preferences across turns, handling intent changes, and returning ranked Top 10 parent_asin recommendations.
+
+Setup and Installation:
+The project uses Python 3.10+ and only the Python standard library for the official agent. No external runtime APIs or API keys are required. Download the official catalog.jsonl.gz from the participant-kit release, verify the provided SHA256 checksums, decompress it to data/catalog.jsonl, then run the tests and evaluator from the repository root.
+
+Steps to Reproduce Results:
+Run:
+python3 -B -m unittest discover -s tests -v
+python3 -B -m evaluator.local_evaluator
+
+Public evaluator result:
+Hit Rate@10: 0.98
+MRR: 0.690403
+MTTC: 2.96
+TechnicalScore: 0.857921
+Prompt/completion tokens: 0/0
+Estimated runtime model/API cost: $0
+
+Limitations and Future Improvements:
+The system is optimized for the official frozen catalog and public evaluator, so private evaluation performance may differ. It uses deterministic lexical and structured ranking rather than a trained semantic reranker. With more time, we would add semantic retrieval, richer recommendation explanations, broader synonym handling, and more validation tuning.
+
+Team Member Contributions:
+Shayna worked on profile extraction, dialogue state, conversation memory, and follow-up question strategy.
+Leon worked on offline catalog retrieval, candidate filtering, ranking, and validation.
+Rhea worked on integration, release management, official Agent contract compliance, evaluator verification, README/docs, and demo packaging.

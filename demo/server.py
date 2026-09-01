@@ -34,43 +34,91 @@ INDEX_HTML = """<!doctype html>
     :root {
       color-scheme: light;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f7f8;
-      color: #172026;
+      background: #f3f5f6;
+      color: #162026;
+      --ink: #162026;
+      --muted: #667780;
+      --line: #d8e0e4;
+      --panel: #ffffff;
+      --accent: #0f766e;
+      --accent-dark: #115e59;
+      --warm: #f97316;
+      --soft: #e7f3f0;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
-    header { padding: 18px 24px; background: #ffffff; border-bottom: 1px solid #d9e0e4; }
-    h1 { margin: 0; font-size: 20px; letter-spacing: 0; }
-    main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; padding: 20px; }
-    .panel { background: #ffffff; border: 1px solid #d9e0e4; border-radius: 8px; min-width: 0; }
-    .chat { display: grid; grid-template-rows: 1fr auto; min-height: calc(100vh - 100px); }
+    body { margin: 0; min-height: 100vh; }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 22px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+    h1 { margin: 0; font-size: 21px; letter-spacing: 0; }
+    .subtitle { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .statusbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .pill { border: 1px solid var(--line); background: #f8fafb; border-radius: 999px; padding: 6px 10px; font-size: 13px; color: var(--muted); }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 18px; padding: 18px; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; min-width: 0; box-shadow: 0 1px 2px rgba(22, 32, 38, .04); }
+    .chat { display: grid; grid-template-rows: auto 1fr auto; min-height: calc(100vh - 96px); }
+    .quick { display: flex; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+    .quick button { white-space: nowrap; min-height: 34px; color: var(--ink); background: #f8fafb; border: 1px solid var(--line); }
     #messages { padding: 16px; overflow: auto; }
-    .msg { max-width: 760px; margin: 0 0 12px; padding: 12px 14px; border-radius: 8px; line-height: 1.45; }
-    .user { margin-left: auto; background: #d7ece7; }
-    .agent { background: #eef2f4; }
-    form { display: flex; gap: 10px; padding: 14px; border-top: 1px solid #d9e0e4; }
+    .msg { max-width: 780px; margin: 0 0 12px; padding: 12px 14px; border-radius: 8px; line-height: 1.45; white-space: pre-wrap; }
+    .user { margin-left: auto; background: var(--soft); border: 1px solid #bdded7; }
+    .agent { background: #f1f4f5; border: 1px solid #e0e7ea; }
+    form { display: flex; gap: 10px; padding: 14px; border-top: 1px solid var(--line); }
     input { flex: 1; min-width: 0; padding: 12px; border: 1px solid #b8c4ca; border-radius: 6px; font-size: 15px; }
-    button { border: 0; border-radius: 6px; padding: 0 16px; font-weight: 700; background: #111827; color: white; cursor: pointer; }
-    button.secondary { background: #ec4e20; }
-    aside { padding: 16px; align-self: start; }
-    h2 { margin: 0 0 12px; font-size: 16px; }
-    ol { margin: 0; padding-left: 22px; }
-    li { margin-bottom: 10px; }
-    code { background: #eef2f4; border-radius: 4px; padding: 2px 4px; }
-    .meta { color: #60707a; font-size: 13px; margin-top: 6px; }
+    button { border: 0; border-radius: 6px; padding: 0 16px; font-weight: 700; background: var(--accent); color: white; cursor: pointer; min-height: 42px; }
+    button:hover { background: var(--accent-dark); }
+    button.secondary { background: var(--warm); }
+    aside { display: grid; gap: 14px; align-self: start; }
+    .side-section { padding: 15px; }
+    h2 { margin: 0 0 10px; font-size: 16px; }
+    h3 { margin: 0 0 8px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    ol { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; }
+    li { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: #fbfcfc; }
+    .rank { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: var(--accent); color: white; font-size: 12px; font-weight: 800; margin-right: 7px; }
+    .asin { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--muted); margin-top: 3px; overflow-wrap: anywhere; }
+    .title { font-weight: 750; }
+    .details { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    code, pre { background: #eef2f4; border-radius: 4px; }
+    code { padding: 2px 4px; }
+    pre { margin: 0; padding: 10px; max-height: 260px; overflow: auto; font-size: 12px; white-space: pre-wrap; }
+    .meta { color: var(--muted); font-size: 13px; margin-top: 6px; }
     .error { color: #9f1239; font-weight: 700; }
-    @media (max-width: 860px) {
+    @media (max-width: 940px) {
+      header { align-items: flex-start; flex-direction: column; }
+      .statusbar { justify-content: flex-start; }
       main { grid-template-columns: 1fr; padding: 12px; }
-      .chat { min-height: 70vh; }
+      .chat { min-height: 68vh; }
+      form { flex-wrap: wrap; }
+      input { flex-basis: 100%; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>ShopSense Shopping Copilot</h1>
+    <div>
+      <h1>ShopSense Shopping Copilot</h1>
+      <p class="subtitle">Offline conversational search over the frozen 50,000-product catalog</p>
+    </div>
+    <div class="statusbar">
+      <span class="pill">Turn <strong id="turnText">0</strong>/10</span>
+      <span class="pill">HR@10 <strong>0.98</strong></span>
+      <span class="pill">No API keys</span>
+    </div>
   </header>
   <main>
     <section class="panel chat">
+      <div class="quick">
+        <button type="button" data-example="I need black leather boots under $100">Boots under $100</button>
+        <button type="button" data-example="I am browsing for a comfortable cotton summer dress">Browsing dress</button>
+        <button type="button" data-example="Actually switch to a red formal dress instead">Intent override</button>
+        <button type="button" data-example="No preference, use your judgment">No preference</button>
+      </div>
       <div id="messages"></div>
       <form id="chatForm">
         <input id="messageInput" autocomplete="off" placeholder="Tell it what you want, for example: I need black leather boots under $100">
@@ -78,10 +126,20 @@ INDEX_HTML = """<!doctype html>
         <button class="secondary" type="button" id="resetButton">Reset</button>
       </form>
     </section>
-    <aside class="panel">
-      <h2>Current Top 10</h2>
-      <ol id="recommendations"></ol>
-      <p class="meta">This demo calls <code>starter.agent.Agent</code>. Official scoring still uses <code>python3 -m evaluator.local_evaluator</code>.</p>
+    <aside>
+      <section class="panel side-section">
+        <h2>Current Top 10</h2>
+        <ol id="recommendations"></ol>
+      </section>
+      <section class="panel side-section">
+        <h3>Official Response JSON</h3>
+        <pre id="jsonOutput">{}</pre>
+        <p class="meta">The UI adds display details separately. The official agent still returns only <code>message</code>, <code>ask_attribute</code>, and <code>recommendations</code>.</p>
+      </section>
+      <section class="panel side-section">
+        <h3>How To Score</h3>
+        <p class="meta">Run <code>python3 -m evaluator.local_evaluator</code>. The evaluator imports <code>starter.agent.Agent</code> directly.</p>
+      </section>
     </aside>
   </main>
   <script>
@@ -90,6 +148,8 @@ INDEX_HTML = """<!doctype html>
     const messages = document.getElementById("messages");
     const recs = document.getElementById("recommendations");
     const input = document.getElementById("messageInput");
+    const turnText = document.getElementById("turnText");
+    const jsonOutput = document.getElementById("jsonOutput");
 
     function addMessage(text, type, meta = "") {
       const div = document.createElement("div");
@@ -109,9 +169,31 @@ INDEX_HTML = """<!doctype html>
       recs.innerHTML = "";
       for (const item of items || []) {
         const li = document.createElement("li");
-        li.textContent = item.parent_asin;
+        const rank = document.createElement("span");
+        rank.className = "rank";
+        rank.textContent = item.rank;
+        const title = document.createElement("div");
+        title.className = "title";
+        title.appendChild(rank);
+        title.append(item.title || "Catalog product");
+        const details = document.createElement("div");
+        details.className = "details";
+        details.textContent = [item.price, item.store, item.categories].filter(Boolean).join(" | ");
+        const asin = document.createElement("div");
+        asin.className = "asin";
+        asin.textContent = item.parent_asin;
+        li.append(title, details, asin);
         recs.appendChild(li);
       }
+    }
+
+    function setOfficialJson(data) {
+      const official = {
+        message: data.message,
+        ask_attribute: data.ask_attribute,
+        recommendations: data.recommendations || []
+      };
+      jsonOutput.textContent = JSON.stringify(official, null, 2);
     }
 
     async function postJson(url, body) {
@@ -129,13 +211,21 @@ INDEX_HTML = """<!doctype html>
       const data = await postJson("/api/reset", {});
       sessionId = data.session_id;
       turn = 0;
+      turnText.textContent = "0";
       messages.innerHTML = "";
       setRecommendations([]);
-      addMessage("New shopping session started. What are you looking for?", "agent");
+      jsonOutput.textContent = "{}";
+      addMessage("New shopping session started. What are you looking for?", "agent", "demo profile loaded");
       input.focus();
     }
 
     document.getElementById("resetButton").addEventListener("click", reset);
+    for (const button of document.querySelectorAll("[data-example]")) {
+      button.addEventListener("click", () => {
+        input.value = button.dataset.example;
+        input.focus();
+      });
+    }
     document.getElementById("chatForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const text = input.value.trim();
@@ -145,8 +235,10 @@ INDEX_HTML = """<!doctype html>
       try {
         turn += 1;
         const data = await postJson("/api/message", {session_id: sessionId, user_message: text, turn});
+        turnText.textContent = String(turn);
         addMessage(data.message, "agent", data.ask_attribute ? `asks for: ${data.ask_attribute}` : "");
-        setRecommendations(data.recommendations);
+        setRecommendations(data.recommendation_details || data.recommendations);
+        setOfficialJson(data);
       } catch (error) {
         addMessage(error.message, "agent error");
       }
@@ -162,7 +254,47 @@ INDEX_HTML = """<!doctype html>
 class DemoApp:
     def __init__(self, catalog_path: Path) -> None:
         self.agent = Agent(catalog_path)
+        self.products = self._load_products(catalog_path)
         self.lock = threading.RLock()
+
+    def _load_products(self, catalog_path: Path) -> dict[str, dict[str, object]]:
+        products: dict[str, dict[str, object]] = {}
+        with catalog_path.open(encoding="utf-8") as handle:
+            for line in handle:
+                if not line.strip():
+                    continue
+                item = json.loads(line)
+                parent_asin = str(item.get("parent_asin") or "")
+                if parent_asin:
+                    products[parent_asin] = item
+        return products
+
+    def _details(self, recommendations: list[dict[str, str]]) -> list[dict[str, object]]:
+        output: list[dict[str, object]] = []
+        for index, rec in enumerate(recommendations, start=1):
+            parent_asin = rec.get("parent_asin", "")
+            product = self.products.get(parent_asin, {})
+            categories = product.get("categories")
+            if isinstance(categories, list):
+                categories = " / ".join(str(value) for value in categories[-3:])
+            price = product.get("price")
+            if isinstance(price, (int, float)):
+                price_text = f"${price:.2f}"
+            elif price:
+                price_text = str(price)
+            else:
+                price_text = ""
+            output.append(
+                {
+                    "rank": index,
+                    "parent_asin": parent_asin,
+                    "title": str(product.get("title") or ""),
+                    "store": str(product.get("store") or ""),
+                    "price": price_text,
+                    "categories": str(categories or ""),
+                }
+            )
+        return output
 
     def reset(self) -> dict[str, str]:
         session_id = str(uuid.uuid4())
@@ -177,7 +309,9 @@ class DemoApp:
         if type(turn) is not int:
             raise ValueError("turn must be an integer")
         with self.lock:
-            return self.agent.respond(session_id, user_message, turn, 10)
+            response = self.agent.respond(session_id, user_message, turn, 10)
+        response["recommendation_details"] = self._details(response.get("recommendations", []))
+        return response
 
 
 def make_handler(app: DemoApp) -> type[BaseHTTPRequestHandler]:

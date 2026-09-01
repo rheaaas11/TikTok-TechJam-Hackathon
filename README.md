@@ -10,6 +10,38 @@ Build an AI shopping agent that asks useful follow-up questions and recommends t
 - Leon: catalog search, filtering, ranking, Top 10 recommendations.
 - Rhea: integration, official agent contract, evaluator, README, final submission.
 
+## Current Release Candidate
+
+The integrated release candidate combines Shayna's profile/question modules with
+Leon ranking through Rhea's official `starter.agent.Agent` entry point.
+
+Verified public-set result:
+
+```text
+Hit Rate@10: 0.98
+MRR: 0.690403
+MTTC: 2.96
+TechnicalScore: 0.857921
+```
+
+Run the release checks:
+
+```bash
+python3 -m unittest
+python3 -m evaluator.local_evaluator
+```
+
+Optional local demo UI:
+
+```bash
+python3 demo/server.py
+```
+
+Then open `http://127.0.0.1:8000`.
+
+See [final results](docs/FINAL_RESULTS.md) and
+[Rhea's submission checklist](docs/SUBMISSION_CHECKLIST.md).
+
 ## Leon's Search and Ranking Candidate
 
 For combining both teammates' branches, start with
@@ -146,10 +178,8 @@ evaluator/local_evaluator.py      public-set simulator and scorer
 ## Judging and Submission Policy
 
 - Participant submission requirements: `docs/submission_rules.md`
-- Participant release checklist: `docs/participant_release_checklist.md`
-- Organizer-only final judging controls: `organizer/JUDGING_RUNBOOK.md`
-- Organizer private release checklist: `organizer/private_release_checklist.md`
-- Judging day operations SOP: `organizer/JUDGING_DAY_SOP.md`
+- Rhea submission checklist: `docs/SUBMISSION_CHECKLIST.md`
+- Final public-set result: `docs/FINAL_RESULTS.md`
 
 ## Data Source
 

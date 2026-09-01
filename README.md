@@ -40,7 +40,9 @@ python3 demo/server.py
 Then open `http://127.0.0.1:8000`.
 
 See [final results](docs/FINAL_RESULTS.md) and
-[Rhea's submission checklist](docs/SUBMISSION_CHECKLIST.md).
+[Rhea's submission checklist](docs/SUBMISSION_CHECKLIST.md). For Devpost,
+use [the written submission draft](docs/DEVPOST_SUBMISSION_DRAFT.md) and
+[the demo video script](docs/DEMO_VIDEO_SCRIPT.md).
 
 ## Leon's Search and Ranking Candidate
 

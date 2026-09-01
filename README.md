@@ -6,14 +6,15 @@ Build an AI shopping agent that asks useful follow-up questions and recommends t
 
 ## Team Ownership
 
-- Shayna: Product DNA, conversation state, constraints, useful questions.
-- Leon: catalog search, filtering, ranking, Top 10 recommendations.
-- Rhea: integration, official agent contract, evaluator, README, final submission.
+Rhea, Shayna, Leon
+- Product DNA, conversation state, constraints, useful questions.
+- Catalog search, filtering, ranking, Top 10 recommendations.
+- Integration, official agent contract, evaluator, README, final submission.
 
 ## Current Release Candidate
 
-The integrated release candidate combines Shayna's profile/question modules with
-Leon ranking through Rhea's official `starter.agent.Agent` entry point.
+The integrated release candidate combines profile/question modules with
+ ranking through  official `starter.agent.Agent` entry point.
 
 Verified public-set result:
 
@@ -44,7 +45,7 @@ See [final results](docs/FINAL_RESULTS.md) and
 use [the written submission draft](docs/DEVPOST_SUBMISSION_DRAFT.md) and
 [the demo video script](docs/DEMO_VIDEO_SCRIPT.md).
 
-## Leon's Search and Ranking Candidate
+##  Search and Ranking Candidate
 
 For combining both teammates' branches, start with
 [Rhea's morning handoff](docs/RHEA_MORNING_HANDOFF.md). It identifies the real
@@ -57,10 +58,10 @@ The feature-branch implementation and integration guide are documented in
 
 With both feature branches combined, `starter/agent.py` automatically uses Shayna's
 actual parser/question policy through [the tested bridge](docs/COMBINED_AGENT.md).
-It runs Leon's search and candidate statistics once before selecting the question.
+It runs  search and candidate statistics once before selecting the question.
 `starter/conversation.py` remains an explicitly selectable reference comparison;
 its historical score must not be attributed to the Shayna integration. These changes
-retain Shayna's profile/question ownership and Rhea's integration/release ownership.
+retain  profile/question ownership and  integration/release ownership.
 Existing baseline figures below
 describe the original starter, not this candidate. Rhea reviews and merges the PR;
 feature branches must not push directly to `main`.
@@ -129,7 +130,7 @@ Python 3.10 or later is recommended. The starter uses only the Python standard l
 python -B -m evaluator.local_evaluator
 ```
 
-The implemented `starter/agent.py` selects Shayna when both reviewed branches are
+The implemented `starter/agent.py` selects  when both reviewed branches are
 combined. Do not edit the evaluator or public labels when reporting your score.
 The command writes per-session results and aggregate metrics to `results.json`;
 use the identity-checked benchmark in [the combined guide](docs/COMBINED_AGENT.md)

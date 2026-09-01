@@ -1,0 +1,10 @@
+{
+  "classification": "current_explicit_reference_comparison_not_combined_default",
+  "scope": "Same committed source export as integrated-4; explicit reference mode selects a different brain and profile adapter",
+  "leon_source_commit": "666f6d8b5005c2e9d719d2cd2c052babad0656be",
+  "shayna_source_commit": "db55586e2d6f8d6b81480ab822e6c3ac423b985c",
+  "combined_git_tree": "ab6b9dfdf2b51aba64c4ee30aa5037368c72c691",
+  "solution_fingerprint_matches_integrated_4": true,
+  "default_agent_uses_reference_when_both_branches_present": false,
+  "release_note": "Rhea must explicitly review any switch to reference for release; benchmark flags do not change the official Agent default"
+}

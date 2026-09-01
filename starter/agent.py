@@ -1,78 +1,115 @@
 from __future__ import annotations
 
-import json
-import re
-import sqlite3
+import copy
+import threading
 from pathlib import Path
+from typing import Mapping, Protocol, Sequence
+
+from starter.conversation import (
+    ConversationBrain,
+    ReferenceConversationBrain,
+    StateUpdate,
+)
+from starter.ranker import Ranker
 
 
-TOKEN_RE = re.compile(r"[a-z0-9]+", re.IGNORECASE)
-STOPWORDS = {
-    "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "from",
-    "i", "in", "is", "it", "me", "my", "of", "on", "or", "please", "some",
-    "that", "the", "this", "to", "want", "with", "would", "you", "looking",
-}
+ALLOWED_ATTRIBUTES = frozenset(
+    {"category", "material", "color", "size", "style", "brand", "budget", "feature", "use_case", "other"}
+)
 
 
-def _text(value: object) -> str:
-    if value is None:
-        return ""
-    if isinstance(value, dict):
-        return " ".join(f"{key} {item}" for key, item in value.items())
-    if isinstance(value, list):
-        return " ".join(str(item) for item in value)
-    return str(value)
+class RankingBackend(Protocol):
+    def rank(self, profile: object, top_k: int = 10) -> list[dict[str, str]]: ...
 
 
-def _terms(text: str) -> list[str]:
-    return [
-        token.lower()
-        for token in TOKEN_RE.findall(text)
-        if len(token) > 1 and token.lower() not in STOPWORDS
-    ]
+class ResponseComposer(Protocol):
+    def compose(
+        self,
+        update: StateUpdate,
+        recommendations: Sequence[Mapping[str, object]],
+    ) -> dict: ...
+
+
+class OfficialResponseComposer:
+    """Allow-list the official payload; diagnostics/evidence cannot leak."""
+
+    def compose(
+        self,
+        update: StateUpdate,
+        recommendations: Sequence[Mapping[str, object]],
+    ) -> dict:
+        seen: set[str] = set()
+        clean: list[dict[str, str]] = []
+        for item in recommendations:
+            if not isinstance(item, Mapping):
+                continue
+            parent_asin = item.get("parent_asin")
+            if not isinstance(parent_asin, str):
+                continue
+            parent_asin = parent_asin.strip()
+            if not parent_asin or parent_asin in seen:
+                continue
+            seen.add(parent_asin)
+            clean.append({"parent_asin": parent_asin})
+            if len(clean) >= 10:
+                break
+        ask_attribute = update.ask_attribute if update.ask_attribute in ALLOWED_ATTRIBUTES else None
+        return {
+            "message": str(update.message),
+            "ask_attribute": ask_attribute,
+            "recommendations": clean,
+        }
 
 
 class Agent:
-    """Editable weak baseline: stateless BM25 retrieval with no LLM dependency."""
+    """Official entrypoint: active state -> ranking/stats -> question -> payload.
 
-    def __init__(self, catalog_path: str | Path = "data/catalog.jsonl") -> None:
-        self.catalog_path = Path(catalog_path)
-        self.connection = sqlite3.connect(":memory:")
-        self._sessions: set[str] = set()
-        self._build_index()
+    With both reviewed feature branches present, auto mode uses Shayna's real
+    parser and policy. A Leon-only checkout retains its reference fallback;
+    explicit ``conversation_mode='shayna'`` requires the combined implementation.
+    """
 
-    def _build_index(self) -> None:
-        cursor = self.connection.cursor()
-        cursor.execute(
-            "CREATE VIRTUAL TABLE products USING fts5("
-            "parent_asin UNINDEXED, title, categories, features, details, store, description, "
-            "tokenize='unicode61 remove_diacritics 2')"
-        )
-        batch: list[tuple[str, str, str, str, str, str, str]] = []
-        with self.catalog_path.open(encoding="utf-8") as handle:
-            for line in handle:
-                product = json.loads(line)
-                batch.append(
-                    (
-                        str(product["parent_asin"]),
-                        _text(product.get("title")),
-                        _text(product.get("categories")),
-                        _text(product.get("features")),
-                        _text(product.get("details")),
-                        _text(product.get("store")),
-                        _text(product.get("description")),
-                    )
-                )
-                if len(batch) >= 1000:
-                    cursor.executemany("INSERT INTO products VALUES (?, ?, ?, ?, ?, ?, ?)", batch)
-                    batch.clear()
-        if batch:
-            cursor.executemany("INSERT INTO products VALUES (?, ?, ?, ?, ?, ?, ?)", batch)
-        self.connection.commit()
+    def __init__(
+        self,
+        catalog_path: str | Path | None = "data/catalog.jsonl",
+        *,
+        brain: ConversationBrain | None = None,
+        ranker: RankingBackend | None = None,
+        composer: ResponseComposer | None = None,
+        conversation_mode: str = "auto",
+    ) -> None:
+        if conversation_mode not in {"auto", "shayna", "reference"}:
+            raise ValueError("conversation_mode must be auto, shayna, or reference")
+        if brain is None:
+            source_root = Path(__file__).resolve().parents[1] / "src"
+            bundled_parts = [(source_root / name).is_file() for name in ("profile.py", "dialogue.py")]
+            use_shayna = conversation_mode == "shayna" or (
+                conversation_mode == "auto" and any(bundled_parts)
+            )
+            if use_shayna:
+                if not all(bundled_parts):
+                    raise ImportError("Shayna integration requires both src/profile.py and src/dialogue.py")
+                # Do not swallow import or interface errors and quietly score
+                # the reference brain instead of the requested implementation.
+                from starter.shayna_conversation import ShaynaConversationBrain
+
+                brain = ShaynaConversationBrain()
+            else:
+                brain = ReferenceConversationBrain()
+        if ranker is None:
+            if catalog_path is None:
+                raise ValueError("catalog_path is required when ranker is not injected")
+            ranker = Ranker(catalog_path, profile_adapter=getattr(brain, "profile_adapter", None))
+        self.brain = brain
+        self.ranker = ranker
+        self.composer = composer or OfficialResponseComposer()
+        self._lock = threading.RLock()
+        self._responses: dict[str, dict[int, tuple[str, int, dict]]] = {}
 
     def reset(self, session_id: str, user_profile: dict) -> None:
-        # The profile is anonymized and may be used for personalization.
-        self._sessions.add(session_id)
+        with self._lock:
+            self.brain.reset(session_id, copy.deepcopy(user_profile))
+            self._responses[session_id] = {}
 
     def respond(
         self,
@@ -81,22 +118,38 @@ class Agent:
         turn: int,
         top_k: int,
     ) -> dict:
-        if session_id not in self._sessions:
-            raise RuntimeError("reset must be called before respond")
-        unique_terms = list(dict.fromkeys(_terms(user_message)))[:40]
-        expression = " OR ".join(f'"{term}"' for term in unique_terms)
-        if not expression:
-            recommendations: list[dict] = []
-        else:
-            rows = self.connection.execute(
-                "SELECT parent_asin FROM products WHERE products MATCH ? "
-                "ORDER BY bm25(products, 0.0, 6.0, 4.0, 2.5, 2.5, 1.5, 1.0) LIMIT ?",
-                (expression, top_k),
-            ).fetchall()
-            recommendations = [{"parent_asin": str(row[0])} for row in rows]
-        return {
-            "message": "Here are the closest matches I found.",
-            "ask_attribute": None,
-            "recommendations": recommendations,
-            "usage": {"prompt_tokens": 0, "completion_tokens": 0},
-        }
+        with self._lock:
+            if session_id not in self._responses:
+                raise RuntimeError("reset must be called before respond")
+            if type(turn) is not int or not 1 <= turn <= 10:
+                raise ValueError("turn must be an integer between 1 and 10")
+            cache = self._responses[session_id]
+            if turn in cache:
+                previous_message, previous_top_k, previous_response = cache[turn]
+                if (user_message, top_k) != (previous_message, previous_top_k):
+                    raise ValueError("a completed turn cannot be replaced; reset the session first")
+                return copy.deepcopy(previous_response)
+            if cache and turn <= max(cache):
+                raise ValueError("new turns must be increasing")
+            update = self.brain.update(session_id, user_message, turn)
+            finalize = getattr(self.brain, "finalize", None)
+            rank_with_stats = getattr(self.ranker, "rank_with_stats", None)
+            statistics = None
+            if callable(finalize) and callable(rank_with_stats):
+                recommendations, statistics = rank_with_stats(update.profile, top_k)
+            else:
+                recommendations = self.ranker.rank(update.profile, top_k)
+            if callable(finalize):
+                update = finalize(session_id, update, statistics)
+            response = self.composer.compose(update, recommendations)
+            cached_response = copy.deepcopy(response)
+            commit = getattr(self.brain, "commit", None)
+            if callable(commit):
+                commit(session_id, update)
+            cache[turn] = (user_message, top_k, cached_response)
+            return response
+
+    def close(self) -> None:
+        close = getattr(self.ranker, "close", None)
+        if callable(close):
+            close()

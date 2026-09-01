@@ -1,0 +1,133 @@
+{
+  "initialization_seconds": 13.135078,
+  "evaluation_wall_seconds": 84.010763,
+  "timed_turns": 594,
+  "agent_exceptions": 0,
+  "reset_exceptions": 0,
+  "turn_latency_ms": {
+    "p50": 117.252,
+    "p95": 344.6547,
+    "maximum": 481.4998
+  },
+  "raw_response_audit": {
+    "responses_audited": 594,
+    "invalid_responses": 0,
+    "violations_by_affected_response": {},
+    "recommendation_count_distribution": {
+      "10": 594
+    },
+    "catalog_membership_checked": true,
+    "team_gate": "at most min(top_k, 10); stricter than official raw maxItems=100"
+  },
+  "memory": {
+    "available": true,
+    "peak_working_set_bytes": 637288448,
+    "scope": "process lifetime peak; includes evaluator/catalog setup, not incremental Agent memory",
+    "method": "Windows GetProcessMemoryInfo.PeakWorkingSetSize"
+  },
+  "provenance": {
+    "captured_at_utc": "2026-08-31T17:36:18.855341+00:00",
+    "python_version": "3.10.6",
+    "python_implementation": "CPython",
+    "platform": "Windows-10-10.0.22621-SP0",
+    "machine": "AMD64",
+    "git_head": null,
+    "git_dirty": null,
+    "starter_source_sha256": "11ae0b10e76294e480051f4692ffc233987932d7a38b7cddb90a809a4cfea290",
+    "starter_file_sha256": {
+      "starter/__init__.py": "7c597cb17dd97c2246abfa3a369a4c584db881b3c91057cfeac1a4c39cc71a03",
+      "starter/agent.py": "37fd0ccab85187bd5cea40728dbc32c875cecbb7e6eee8b037983189349131a2",
+      "starter/budget.py": "e0489c1837087deaa6e36673bfb10d30d56facbce1bbd3754152052c6c2ec110",
+      "starter/catalog.py": "f011ec6c611d75104c19001a135fc2fc6b6f89ca74ab16f06a3d0fb2e5a550f6",
+      "starter/conversation.py": "c83f553cce007f759c948c9166a1c2aa104a559e34aebeaa1624282e0112cbb9",
+      "starter/evidence.py": "1abba2d6ce282a66c122e944bf54f80d025cb2f4014b7db6d13ba2a1d9550e61",
+      "starter/profile_adapter.py": "594ee0856c50799f9d3cf9ebac75f06329c85d2712fe3fd87a518f77bb3a3cd4",
+      "starter/ranker.py": "eecdd57bf3b2de64fc28148a8a5a084f417c3dd0b12ea3fe96ac63021de8c0db",
+      "starter/retrieval.py": "8be961ac540a8a378ad5119fde8aaff32799d72b73f8976a2e4ddd41856bf24f",
+      "starter/shayna_adapter.py": "7149782060ec5a88a5a1e3deada3ef0c892b9e275e017d8e484adb495656f13f",
+      "starter/shayna_conversation.py": "340ad7be652f121d490fd08cb5b981978894502c88e30afe1afae8f85dff93ec"
+    },
+    "solution_source_sha256": "98bc823ca42d96444a4b583a682fce9954e33b00bf9b580336715aa2c2f7639a",
+    "solution_file_sha256": {
+      "starter/__init__.py": "7c597cb17dd97c2246abfa3a369a4c584db881b3c91057cfeac1a4c39cc71a03",
+      "starter/agent.py": "37fd0ccab85187bd5cea40728dbc32c875cecbb7e6eee8b037983189349131a2",
+      "starter/budget.py": "e0489c1837087deaa6e36673bfb10d30d56facbce1bbd3754152052c6c2ec110",
+      "starter/catalog.py": "f011ec6c611d75104c19001a135fc2fc6b6f89ca74ab16f06a3d0fb2e5a550f6",
+      "starter/conversation.py": "c83f553cce007f759c948c9166a1c2aa104a559e34aebeaa1624282e0112cbb9",
+      "starter/evidence.py": "1abba2d6ce282a66c122e944bf54f80d025cb2f4014b7db6d13ba2a1d9550e61",
+      "starter/profile_adapter.py": "594ee0856c50799f9d3cf9ebac75f06329c85d2712fe3fd87a518f77bb3a3cd4",
+      "starter/ranker.py": "eecdd57bf3b2de64fc28148a8a5a084f417c3dd0b12ea3fe96ac63021de8c0db",
+      "starter/retrieval.py": "8be961ac540a8a378ad5119fde8aaff32799d72b73f8976a2e4ddd41856bf24f",
+      "starter/shayna_adapter.py": "7149782060ec5a88a5a1e3deada3ef0c892b9e275e017d8e484adb495656f13f",
+      "starter/shayna_conversation.py": "340ad7be652f121d490fd08cb5b981978894502c88e30afe1afae8f85dff93ec",
+      "src/__init__.py": "00cb8b0832d8cbab292bb6de600e6c237b785081700fc127deaa3eaf21609a85",
+      "src/dialogue.py": "954f2baa56ba9bad21150ea4a899604cfc17466a34316bfb1a5b4bb8b7dc4706",
+      "src/profile.py": "3cdade1866069fa8684afac44f662559f3c62d55a16271c4e885fef327994737"
+    },
+    "data": {
+      "catalog": {
+        "path": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-2\\data\\catalog.jsonl",
+        "sha256": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67"
+      },
+      "dataset": {
+        "path": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-2\\data\\public_set.jsonl",
+        "sha256": "571359a8a69014c43fc30d39c996c4a28e875dccc249dffc707358757beb16c0"
+      }
+    }
+  },
+  "runtime_identity": {
+    "agent": "starter.agent.Agent",
+    "brain": "starter.shayna_conversation.ShaynaConversationBrain",
+    "ranker": "starter.ranker.Ranker",
+    "profile_adapter": "starter.shayna_adapter.ShaynaProfileAdapter",
+    "composer": "starter.agent.OfficialResponseComposer",
+    "module_files": {
+      "agent": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-2\\starter\\agent.py",
+      "brain": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-2\\starter\\shayna_conversation.py",
+      "ranker": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-2\\starter\\ranker.py",
+      "profile_adapter": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-2\\starter\\shayna_adapter.py",
+      "composer": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-2\\starter\\agent.py"
+    }
+  },
+  "requested_conversation_mode": "shayna",
+  "official_results_path": "D:\\data\\shopsense-integration-validation\\candidate-20260901-integrated-2\\results_snapshot_sessions.json",
+  "metrics": {
+    "sample_count": 200,
+    "hit_rate_at_10": 0.975,
+    "mrr": 0.685986,
+    "mttc": 2.995,
+    "efficiency": 0.8005,
+    "recommended_technical_score": 0.853396,
+    "reported_token_usage": {
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0
+    },
+    "scenario_metrics": {
+      "boundary": {
+        "sample_count": 10,
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.914286,
+        "mttc": 3.1
+      },
+      "browsing": {
+        "sample_count": 80,
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.734648,
+        "mttc": 2.9625
+      },
+      "buying": {
+        "sample_count": 80,
+        "hit_rate_at_10": 0.9625,
+        "mrr": 0.604439,
+        "mttc": 2.2875
+      },
+      "intent_override": {
+        "sample_count": 30,
+        "hit_rate_at_10": 0.933333,
+        "mrr": 0.697579,
+        "mttc": 4.933333
+      }
+    }
+  }
+}

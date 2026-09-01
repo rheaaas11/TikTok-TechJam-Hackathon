@@ -86,28 +86,40 @@ The session ends when the target product appears in the scored Top 10 or after t
 
 ## Download the Catalog
 
-After combining Shayna's and Leon's reviewed branches, the preferred Windows-safe
-setup uses the complete original handoff already included in the repository:
+Download the official participant catalog release and verify both checksums.
+Windows PowerShell setup:
 
 ```powershell
-python -B scripts/restore_shayna_catalog.py --verify-only
-python -B scripts/restore_shayna_catalog.py
+New-Item -ItemType Directory -Force .\data | Out-Null
+
+curl.exe -L `
+  -o .\data\catalog.jsonl.gz `
+  "https://github.com/TechJam2026/techjam-conversational-search/releases/download/participant-kit/catalog.jsonl.gz"
+
+if ((Get-FileHash .\data\catalog.jsonl.gz -Algorithm SHA256).Hash -ne "07FD142631FD6B03E2B4D09988C3EB7D53720E9D57010C79DB48EEAADA50A8F8") {
+    throw "Compressed catalog checksum mismatch"
+}
+
+python -c "import gzip,shutil; src=gzip.open(r'data/catalog.jsonl.gz','rb'); dst=open(r'data/catalog.jsonl','wb'); shutil.copyfileobj(src,dst); src.close(); dst.close()"
+
+if ((Get-FileHash .\data\catalog.jsonl -Algorithm SHA256).Hash -ne "DA979B05A68AF864CB0DCF9EE6A81C010C7E66A57978AD286C7A2E005FC69A67") {
+    throw "Decompressed catalog checksum mismatch"
+}
+
+python -B -m unittest discover -s tests -v
+python -B -m evaluator.local_evaluator
+python -B demo/server.py
 ```
 
-This verifies all 28 archive entries and restores only the two catalogue inputs;
-it reuses exact existing files and refuses to overwrite different ones. See
-[Rhea's morning handoff](docs/RHEA_MORNING_HANDOFF.md) before running the combined Agent.
+Catalog URL:
 
-If Shayna's branch has not been combined, the original alternative is to download
-`catalog.jsonl.gz` from the official participant-kit release, then use an available
-gzip tool (the following commands assume a Unix-like shell):
-
-```bash
-gzip -dk catalog.jsonl.gz
-mv catalog.jsonl data/catalog.jsonl
+```text
+https://github.com/TechJam2026/techjam-conversational-search/releases/download/participant-kit/catalog.jsonl.gz
 ```
 
-Verify the downloaded file using the published `SHA256SUMS` file.
+Compressed SHA256: `07FD142631FD6B03E2B4D09988C3EB7D53720E9D57010C79DB48EEAADA50A8F8`
+
+Decompressed SHA256: `DA979B05A68AF864CB0DCF9EE6A81C010C7E66A57978AD286C7A2E005FC69A67`
 
 ## Run the Agent
 

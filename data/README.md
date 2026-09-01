@@ -8,6 +8,16 @@ Each session contains a safe aggregate `user_profile` and public labels for loca
 
 ## `catalog.jsonl`
 
-Download `catalog.jsonl.gz` from the GitHub Release and decompress it as `catalog.jsonl` in this directory. Expected row count: 50,000.
+Download `catalog.jsonl.gz` from:
+
+```text
+https://github.com/TechJam2026/techjam-conversational-search/releases/download/participant-kit/catalog.jsonl.gz
+```
+
+Place the decompressed file at `data/catalog.jsonl`. Expected row count: 50,000.
+
+Compressed SHA256: `07FD142631FD6B03E2B4D09988C3EB7D53720E9D57010C79DB48EEAADA50A8F8`
+
+Decompressed SHA256: `DA979B05A68AF864CB0DCF9EE6A81C010C7E66A57978AD286C7A2E005FC69A67`
 
 Never place API keys, private evaluation data, or participant outputs in this directory.

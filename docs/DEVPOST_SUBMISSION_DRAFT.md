@@ -62,7 +62,7 @@ No heavy ML framework is required for final scoring.
 - Official frozen 50,000-product `Clothing_Shoes_and_Jewelry` catalog derived from Amazon Reviews 2023.
 - Official 200-session public development set.
 - Organizer-held 800-session private set is not included or accessed.
-- No third-party images, logos, trademarks, or copyrighted media are used in the demo UI.
+- The demo bundles no third-party images, logos, music, video, or font files. Its interface is team-authored. Textual product metadata comes from the official challenge catalog and may contain names or marks belonging to their respective owners.
 
 ## Reproducible Results
 
@@ -80,8 +80,12 @@ Hit Rate@10: 0.98
 MRR: 0.690403
 MTTC: 2.96
 TechnicalScore: 0.857921
-Prompt tokens: 0
-Completion tokens: 0
+Initialization: 9.66 seconds
+Response p50/p95/max: 110.94 / 314.99 / 498.60 ms
+Evaluator wall time: 78.29 seconds
+Whole-process peak working set: 608.77 MiB
+Prompt/completion tokens: 0/0
+Estimated runtime model/API cost: $0
 ```
 
 ## Optional Demo UI

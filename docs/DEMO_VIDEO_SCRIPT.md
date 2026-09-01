@@ -71,4 +71,4 @@ python3 -m evaluator.local_evaluator
 
 ## YouTube Note
 
-Upload the video to YouTube as public or unlisted if Devpost accepts unlisted. Put the YouTube link into the Devpost project description.
+Upload to YouTube with visibility set to Public. Keep the video at or below three minutes and verify it while logged out. Put the YouTube link into the Devpost project description.
